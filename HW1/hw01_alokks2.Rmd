@@ -1,0 +1,291 @@
+---
+title: "STAT420 Homework 1"
+author: "Alok K. Shukla"
+date: "8/28/2016"
+output:
+  html_document:
+    theme: readable
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assignment Solutions
+
+### Exercise 1 (Working with Vectors)
+The given vector of data.
+
+```{r}
+x = c(1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144)
+```
+
+**(a)** Calculation of the sample mean of `x` *without* the use of `mean()`, `sd()`, `sum()`, or `+`.
+
+**Solution**
+Using the matrix multiplication operator `%*%`
+
+If we multiply a row vector with a unit column vector of conformable size, we will essentially get sum of elements in row vector.
+
+1. Create a row matrix of `x` using Transpose function `t` on Matrix function `matrix`
+```{r}
+x_rowmatrix = t(matrix(x))
+x_rowmatrix
+```
+2. Create a unit vector of conformable size
+```{r}
+unit_vector = rep(1, times = length(x))
+unit_vector
+```
+3. Multiply both and get the value of total using `as.numeric`
+```{r}
+total = as.numeric(x_rowmatrix %*% unit_vector)
+total
+```
+Note: This works even when the second argument is a vector. Help doc for `%*%` says *"If one argument is a vector, it will be promoted to either a row or column matrix to make the two arguments conformable"*
+
+4. Get the mean
+```{r}
+computed_mean = total/length(x)
+computed_mean
+```
+
+5. The mean computed with `mean`
+
+```{r}
+mean(x)
+```
+```{r}
+
+```
+
+**(b)** Calculate the sample standard deviation of `x` *without* the use of `mean()`, `sd()`, `sum()`, or `+`.
+
+**Solution**
+
+If we take the mod of cross product of a vector with itself we essentially get the sum of squares of the elements in the vector. By definition SD is sqaure root of average sum of residual ( actual value $-$ mean).
+
+1. Create the residual vector
+```{r}
+x_residuals = x - computed_mean
+x_residuals
+```
+
+2. Compute sum of squares
+```{r}
+ssq_x = as.numeric(crossprod(x_residuals))
+ssq_x
+```
+
+3. Compute average and square root
+```{r}
+computed_sd = sqrt(ssq_x/(length(x)-1))
+computed_sd
+```
+
+4. Compare with actual sd
+```{r}
+sd(x)
+```
+
+### Exercise 2 (Vectors and Matrices)
+
+**(a)** Create five vectors `x0`, `x1`, `x2`, `x3`, and `y`. Each should have a length of 30 and store the following:
+
+- `x0`: Each element should be the value `1`.
+
+**Solution**
+```{r}
+x0 = rep(1,30)
+x0
+```
+
+- `x1`: The first 30 square numbers.
+
+**Solution**
+```{r}
+x1 = (seq(1,30,1))^2
+x1
+length(x1)
+```
+
+- `x2`: 30 evenly spaced numbers between `0` and `1`.
+
+**Solution**
+```{r}
+x2 = (seq(0,1,(1/29)))
+x2
+length(x2)
+```
+
+- `x3`: The natural log of the integers from `1` to `30`.
+
+**Solution**
+```{r}
+
+x3 = log(seq(1,30,1))
+x3
+```
+
+- `y`: The result of running the following code, after creating the other four vectors:
+
+```{r, eval = FALSE}
+set.seed(42)
+y  = 5 * x0 + 1 * x1 + 6 * x2 + 3 * x3 + rnorm(n = 30, mean = 0 , sd = 1)
+```
+Report the value returned from `sum(y)`.
+
+**Solution**
+```{r, echo=FALSE}
+set.seed(42)
+y  = 5 * x0 + 1 * x1 + 6 * x2 + 3 * x3 + rnorm(n = 30, mean = 0 , sd = 1)
+```
+```{r}
+sum(y)
+```
+
+**(b)** Create a matrix `X` which stores `x0`, `x1`, `x2`, and `x3` as columns of the matrix. Report the value returned from `sum(X)`.
+
+**Solution**
+```{r}
+X = cbind(x0,x1,x2,x3)
+sum(X)
+```
+
+**(c)** Use matrix operations to create a new matrix `beta_hat` defined as follows:
+
+\[
+\hat{\beta} = (X^T X)^{-1} X^T y.
+\]
+
+Report the values stored in the matrix `beta_hat`. Note that you can use the vector `y` as if it is a $30 \times 1$ matrix.
+
+**Solution**
+```{r}
+beta_hat = (solve(t(X)%*%X))%*%(t(X)%*%y)
+beta_hat
+```
+
+**(d)** Subset `beta_hat` matrix to exclude the first row, then square each element and report the sum of these results.
+
+**Solution**
+```{r}
+beta_hat_subset_squaresum = as.numeric(crossprod(beta_hat[2:4,]))
+beta_hat_subset_squaresum
+```
+
+**(e)** Create a new variable `y_hat` which stores the result of the matrix operation,
+
+\[
+\hat{y} = X \hat{\beta}.
+\]
+
+Perform and report the result of the following operation,
+
+\[
+\sum_{i = 1}^{30} (y_i - \hat{y}_i)^ 2.
+\]
+
+**Solution**
+```{r}
+y_hat = X%*%beta_hat
+residual_y = y-y_hat
+ssq_y = as.numeric(crossprod(residual_y))
+ssq_y
+```
+
+### Exercise 3 (Discrete Probability)
+
+The [2016 United States presidential election](https://en.wikipedia.org/wiki/United_States_presidential_election,_2016) has been an interesting contest. A [Fox News National Poll](http://www.foxnews.com/politics/interactive/2016/06/09/fox-news-poll-national-releas-6-16/) from June which surveyed 1004 registered voters placed former New Mexico Governor [Gary Johnson](https://en.wikipedia.org/wiki/Gary_Johnson) in third place, which is expected, however polling in the double digits at 12%. ([Third party candidates haven't performed well in recent years. The last time a third party managed to get votes in the Electoral College was 1968.](https://en.wikipedia.org/wiki/United_States_presidential_election,_1968))
+
+Suppose the true proportion of registered voters that support Johnson is 12% and we obtain our own random sample of 50 registered voters. Answer the follows questions as they relate to this sample of 50 voters.
+
+**(a)** What is the probability that exactly 5 of the voters are Johnson supporters?
+
+**Solution**
+```{r}
+dbinom(5,size=50,prob=0.12)
+```
+
+**(b)** What is the probability that 10 or fewer voters are Johnson supporters?
+
+**Solution**
+```{r}
+pbinom(10,size=50,prob=0.12,lower.tail = TRUE)
+```
+
+**(c)** What is the probability that 37 or more voters are **not** Johnson supporters?
+
+**Solution**
+
+```{r, message=FALSE}
+require(Rmpfr)
+one = mpfr(1,120)
+prob = mpfr(pbinom(37,size=50,prob=0.12,lower.tail = FALSE),120)
+one - prob
+```
+
+**(d)** What is the probability that between 3 and 9 (inclusive) voters are Johnson supporters?
+
+**Solution**
+
+```{r}
+numbers = seq(3,9)
+prob = dbinom(numbers,size=50,prob=0.12,log=FALSE)
+sum(prob)
+```
+
+### Exercise 4 (Continuous Probability)
+
+For this exercise, consider a random variable $X$ which is normally distributed with a mean of 120 and a standard deviation of 15. That is,
+
+\[
+X \sim N\left(\mu = 120, \sigma^2 = 225\right).
+\]
+
+**(a)** Calculate $P(X < 95)$.
+
+**Solution**
+
+```{r}
+pnorm(95,mean=120,sd=15,lower.tail = TRUE,log.p=FALSE)-dnorm(95,mean=120,sd=15)
+```
+
+**(b)** Calculate $P(X > 140)$.
+
+**Solution**
+
+```{r}
+pnorm(140,mean=120,sd=15,lower.tail = FALSE,log.p=FALSE)
+```
+
+**(c)** Calculate $P(95 < X < 120)$.
+
+**Solution**
+
+```{r}
+pnorm(120,mean=120,sd=15,lower.tail = TRUE,log.p=FALSE) - pnorm(95,mean=120,sd=15,lower.tail = TRUE,log.p=FALSE)
+```
+
+**(d)** Find $q$ such that $P(X < q) = 0.05$.
+
+**Solution**
+
+```{r}
+qnorm(0.05,mean=120,sd=15,lower.tail = TRUE,log.p=FALSE)
+```
+
+**(e)** Find $q$ such that $P(X > q) = 0.10$.
+
+**Solution**
+
+```{r}
+qnorm(0.10,mean=120,sd=15,lower.tail = FALSE,log.p=FALSE)
+```
+
+
+
+
