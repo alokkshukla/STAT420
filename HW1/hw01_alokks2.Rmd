@@ -121,6 +121,8 @@ x2
 length(x2)
 ```
 
+*Note*: taking increment $1/30$ would generate 31 numbers in total.
+
 - `x3`: The natural log of the integers from `1` to `30`.
 
 **Solution**
@@ -177,6 +179,8 @@ beta_hat_subset_squaresum = as.numeric(crossprod(beta_hat[2:4,]))
 beta_hat_subset_squaresum
 ```
 
+As mentioned earlier, `crossprod` can be used to calcualte sum of element sqaures of any vector.
+
 **(e)** Create a new variable `y_hat` which stores the result of the matrix operation,
 
 \[
@@ -227,6 +231,7 @@ one = mpfr(1,120)
 prob = mpfr(pbinom(37,size=50,prob=0.12,lower.tail = FALSE),120)
 one - prob
 ```
+*Note*: Used `Rmpfr` package for better precision than default **R**. Otherwise the probability would have been $1$. 
 
 **(d)** What is the probability that between 3 and 9 (inclusive) voters are Johnson supporters?
 
@@ -251,7 +256,7 @@ X \sim N\left(\mu = 120, \sigma^2 = 225\right).
 **Solution**
 
 ```{r}
-pnorm(95,mean=120,sd=15,lower.tail = TRUE,log.p=FALSE)-dnorm(95,mean=120,sd=15)
+pnorm(95,mean=120,sd=15,lower.tail = TRUE,log.p=FALSE)
 ```
 
 **(b)** Calculate $P(X > 140)$.
@@ -286,6 +291,173 @@ qnorm(0.05,mean=120,sd=15,lower.tail = TRUE,log.p=FALSE)
 qnorm(0.10,mean=120,sd=15,lower.tail = FALSE,log.p=FALSE)
 ```
 
+### Exercise 5 (Packages, Plotting)
+
+For this exercise, we will use the `diabetes` dataset from the `faraway` package.
+
+**(a)** Install and load the `faraway` package.
+
+**Solution**
+
+```{r}
+library(faraway)
+```
+
+**(b)** How many observations are in this dataset? How many variables?
+
+**Solution**
+
+```{r}
+obs = nrow(diabetes)
+obs
+cols = ncol(diabetes)
+cols
+```
+
+**(c)** What are the names of the variables in this dataset?
+
+**Solution**
+
+```{r}
+colnames(diabetes)
+```
+
+**(d)** What is the mean [HDL](https://en.wikipedia.org/wiki/High-density_lipoprotein) level (High Density Lipoprotein) of individuals in this sample?
+
+**Solution**
+
+```{r}
+mean(diabetes$hdl,na.rm=TRUE)
+```
+
+**(e)** What is the standard deviation total cholesterol of individuals in this sample?
+
+**Solution**
+
+```{r}
+sd(diabetes$chol,na.rm=TRUE)
+```
+
+**(f)** What is the range of ages of individuals in this sample?
+
+**Solution**
+
+```{r}
+range(diabetes$age)
+```
+
+**(g)** What is the mean HDL of females in this sample?
+
+**Solution**
+
+```{r}
+females = subset(diabetes,gender=="female")
+mean(females$hdl,na.rm=TRUE)
+```
+
+**(h)** Create a scatterplot of HDL (y-axis) vs weight (x-axis). Use a non-default color for the points. (Also, be sure to give the plot a title and label the axes appropriately.) Based on the scatterplot, does there seem to be a relationship between the two variables? Briefly explain.
+
+**Solution**
+
+```{r}
+par(las=1)
+plot(diabetes$weight, diabetes$hdl, xlab="Weight (lbs)", ylab="HDL",main="Weight vs HDL Levels",col="magenta",pch=18)
+```
+
+From scatterplot we can see that there is a slight negative correlation between weight and HDL levels i.e. as weight increases, HDL levels decrease.
+
+```{r}
+cor(diabetes$hdl,diabetes$weight, use="complete")
+```
+
+*Note*: `use="complete"` to deal with `NA`
 
 
+**(i)** Create a scatterplot of total cholesterol (y-axis) vs weight (x-axis). Use a non-default color for the points. (Also, be sure to give the plot a title and label the axes appropriately.) Based on the scatterplot, does there seem to be a relationship between the two variables? Briefly explain.
 
+**Solution**
+
+```{r}
+par(las=1)
+plot(diabetes$weight, diabetes$chol, xlab="Weight (lbs)", ylab="Cholesterol",main="Weight vs Cholesterol Levels",col="green",pch=18)
+```
+
+From scatterplot we can see that there is a slight positive correlation between weight and total Cholesterol levels i.e. as weight increases, Cholesterol level also increases.
+
+```{r}
+cor(diabetes$chol,diabetes$weight, use="complete")
+```
+
+*Note*: `use="complete"` to deal with `NA`
+
+### Exercise 6 (Importing Data, Plotting)
+
+For this exercise we will use the data stored in [`nutrition.csv`](nutrition.csv). It contains the nutritional values per serving size for a large variety of foods as calculated by the USDA. It is a cleaned version totaling 5138 observations and is current as of September 2015.
+
+The variables in the dataset are:
+
+- `ID` 
+- `Desc` - Short description of food
+- `Water` - in grams
+- `Calories` - in kcal
+- `Protein` - in grams
+- `Fat` - in grams
+- `Carbs` - Carbohydrates, in grams
+- `Fiber` - in grams
+- `Sugar` - in grams
+- `Calcium` - in milligrams
+- `Potassium` - in milligrams
+- `Sodium` - in milligrams
+- `VitaminC` - Vitamin C, in milligrams
+- `Chol` - Cholesterol, in milligrams
+- `Portion` - Description of standard serving size used in analysis
+
+**(a)** Create a histogram of `Calories`. Do not modify `R`'s default bin selection. Make the plot presentable. Describe the shape of the histogram. Do you notice anything unusual?
+
+**Solution**
+
+```{r}
+nutrition <- read.csv("nutrition.csv")
+par(oma = c(1, 2, 1, 1))  # add an outer margin to plot in
+hist(nutrition$Calories, xlab = "Calories", ylab = "", las = 1, main = "",  
+    col = "grey")
+box()
+mtext(side = 2, "Frequency", outer = TRUE, line = 0)
+
+```
+
+***Shape***
+
+The overall decreasing height of bins as the calories increase convey that there are lesser and lesser number of food items that have high calorie content.
+
+***Unusual***
+
+The peak at $400$ implies there is a large number of food items that have approx. 400 kilo calories. ( Unsurprisingly, Cereals come in this category.)
+
+The peak after 800 kilo calories, the *Oils* to blame.
+
+
+**(b)** Create a scatterplot of calories (y-axis) vs protein (x-axis). Make the plot presentable. Do you notice any trends? Do you think that knowing only the protein content of a food, you could make a good prediction of the calories in the food?
+
+**Solution**
+
+```{r}
+par(las=1)
+plot(nutrition$Protein, nutrition$Calories, xlab="Proteins", ylab="Calories",main="Calories vs Proteins",col="green",pch=18)
+
+```
+
+Its hard to see a trend here; and knowing only Protein values, its not a good idea to try and predict Calories.
+
+**(c)** Create a scatterplot of `Calories` (y-axis) vs `4 * Protein + 4 * Carbs + 9 * Fat + 2 * Fiber` (x-axis). Make the plot presentable. You will either need to add a new variable to the data frame, or, use the `I()` function in your formula in the call to `plot()`. If you are at all familiar with nutrition, you may realize that this formula calculates the calorie count based on the protein, carbohydrate, and fat values. You'd expect then that the result here is a straight line. Is it? If not, can you think of any reasons why it is not?
+
+**Solution**
+
+```{r}
+nutrition$temp_x = 4*nutrition$Calories + 4*nutrition$Carbs + 9*nutrition$Fat + 2*nutrition$Fiber
+par(las=1)
+plot(nutrition$temp_x, nutrition$Calories, xlab="Linear combination of Proteins, Carbs, Fat and Fiber content", ylab="Calories",main="Calories vs (Proteins+Carbs+Fat+Fiber)",col="magenta",pch=15)
+
+```
+
+The result is a good approximate for linear relationship; there is always chance of residuals between actual and predicted values; thus the minor bumps. 
