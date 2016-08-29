@@ -134,10 +134,10 @@ $(document).ready(function () {
 </ul>
 </div>
 
-<div id="assignment-solutions" class="section level2">
-<h2>Assignment Solutions</h2>
-<div id="exercise-1-working-with-vectors" class="section level3">
-<h3>Exercise 1 (Working with Vectors)</h3>
+<div id="assignment-solutions" class="section level1">
+<h1>Assignment Solutions</h1>
+<div id="exercise-1-working-with-vectors" class="section level2">
+<h2>Exercise 1 (Working with Vectors)</h2>
 <p>The given vector of data.</p>
 <pre class="r"><code>x = c(1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144)</code></pre>
 <p><strong>(a)</strong> Calculation of the sample mean of <code>x</code> <em>without</em> the use of <code>mean()</code>, <code>sd()</code>, <code>sum()</code>, or <code>+</code>.</p>
@@ -202,8 +202,8 @@ computed_sd</code></pre>
 <pre class="r"><code>sd(x)</code></pre>
 <pre><code>## [1] 44.48766</code></pre>
 </div>
-<div id="exercise-2-vectors-and-matrices" class="section level3">
-<h3>Exercise 2 (Vectors and Matrices)</h3>
+<div id="exercise-2-vectors-and-matrices" class="section level2">
+<h2>Exercise 2 (Vectors and Matrices)</h2>
 <p><strong>(a)</strong> Create five vectors <code>x0</code>, <code>x1</code>, <code>x2</code>, <code>x3</code>, and <code>y</code>. Each should have a length of 30 and store the following:</p>
 <ul>
 <li><code>x0</code>: Each element should be the value <code>1</code>.</li>
@@ -295,8 +295,8 @@ ssq_y = as.numeric(crossprod(residual_y))
 ssq_y</code></pre>
 <pre><code>## [1] 41.56007</code></pre>
 </div>
-<div id="exercise-3-discrete-probability" class="section level3">
-<h3>Exercise 3 (Discrete Probability)</h3>
+<div id="exercise-3-discrete-probability" class="section level2">
+<h2>Exercise 3 (Discrete Probability)</h2>
 <p>The <a href="https://en.wikipedia.org/wiki/United_States_presidential_election,_2016">2016 United States presidential election</a> has been an interesting contest. A <a href="http://www.foxnews.com/politics/interactive/2016/06/09/fox-news-poll-national-releas-6-16/">Fox News National Poll</a> from June which surveyed 1004 registered voters placed former New Mexico Governor <a href="https://en.wikipedia.org/wiki/Gary_Johnson">Gary Johnson</a> in third place, which is expected, however polling in the double digits at 12%. (<a href="https://en.wikipedia.org/wiki/United_States_presidential_election,_1968">Third party candidates haven’t performed well in recent years. The last time a third party managed to get votes in the Electoral College was 1968.</a>)</p>
 <p>Suppose the true proportion of registered voters that support Johnson is 12% and we obtain our own random sample of 50 registered voters. Answer the follows questions as they relate to this sample of 50 voters.</p>
 <p><strong>(a)</strong> What is the probability that exactly 5 of the voters are Johnson supporters?</p>
@@ -309,6 +309,7 @@ ssq_y</code></pre>
 <pre><code>## [1] 0.967502</code></pre>
 <p><strong>(c)</strong> What is the probability that 37 or more voters are <strong>not</strong> Johnson supporters?</p>
 <p><strong>Solution</strong></p>
+<pre class="r"><code>install.packages(&quot;Rmpfr&quot;)</code></pre>
 <pre class="r"><code>require(Rmpfr)
 one = mpfr(1,120)
 prob = mpfr(pbinom(37,size=50,prob=0.12,lower.tail = FALSE),120)
@@ -323,8 +324,8 @@ prob = dbinom(numbers,size=50,prob=0.12,log=FALSE)
 sum(prob)</code></pre>
 <pre><code>## [1] 0.8779742</code></pre>
 </div>
-<div id="exercise-4-continuous-probability" class="section level3">
-<h3>Exercise 4 (Continuous Probability)</h3>
+<div id="exercise-4-continuous-probability" class="section level2">
+<h2>Exercise 4 (Continuous Probability)</h2>
 <p>For this exercise, consider a random variable <span class="math inline">\(X\)</span> which is normally distributed with a mean of 120 and a standard deviation of 15. That is,</p>
 <p><span class="math display">\[
 X \sim N\left(\mu = 120, \sigma^2 = 225\right).
@@ -350,8 +351,8 @@ X \sim N\left(\mu = 120, \sigma^2 = 225\right).
 <pre class="r"><code>qnorm(0.10,mean=120,sd=15,lower.tail = FALSE,log.p=FALSE)</code></pre>
 <pre><code>## [1] 139.2233</code></pre>
 </div>
-<div id="exercise-5-packages-plotting" class="section level3">
-<h3>Exercise 5 (Packages, Plotting)</h3>
+<div id="exercise-5-packages-plotting" class="section level2">
+<h2>Exercise 5 (Packages, Plotting)</h2>
 <p>For this exercise, we will use the <code>diabetes</code> dataset from the <code>faraway</code> package.</p>
 <p><strong>(a)</strong> Install and load the <code>faraway</code> package.</p>
 <p><strong>Solution</strong></p>
@@ -407,8 +408,8 @@ plot(diabetes$weight, diabetes$chol, xlab=&quot;Weight (lbs)&quot;, ylab=&quot;C
 <pre><code>## [1] 0.06688851</code></pre>
 <p><em>Note</em>: <code>use=&quot;complete&quot;</code> to deal with <code>NA</code></p>
 </div>
-<div id="exercise-6-importing-data-plotting" class="section level3">
-<h3>Exercise 6 (Importing Data, Plotting)</h3>
+<div id="exercise-6-importing-data-plotting" class="section level2">
+<h2>Exercise 6 (Importing Data, Plotting)</h2>
 <p>For this exercise we will use the data stored in <a href="nutrition.csv"><code>nutrition.csv</code></a>. It contains the nutritional values per serving size for a large variety of foods as calculated by the USDA. It is a cleaned version totaling 5138 observations and is current as of September 2015.</p>
 <p>The variables in the dataset are:</p>
 <ul>
