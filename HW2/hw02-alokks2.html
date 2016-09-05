@@ -252,7 +252,7 @@ eagleton = intelligence[intelligence$town == &quot;eagleton&quot;, 1]
 res = t.test(pawnee, eagleton, alternative = c(&quot;greater&quot;), var.equal = TRUE)
 res$p.value</code></pre>
 <pre><code>## [1] 0.652316</code></pre>
-<p>We now have the p-value of our test, which is greater than our signi cance level (0.10), so we fail to reject the null hypothesis implying we cant say if Eagletonians are smarter than Pawnee people.</p>
+<p>We now have the p-value of our test, which is greater than our significance level (0.10), so we fail to reject the null hypothesis implying we cant say if Eagletonians are smarter than Pawnee people.</p>
 <p><strong>(d)</strong> Repeat <strong>(c)</strong> using a two-sided alternative hypothesis. What changes?</p>
 <p><strong>Solution</strong></p>
 <pre class="r"><code>res2 = t.test(pawnee, eagleton, alternative = c(&quot;two.sided&quot;), 

@@ -3,10 +3,10 @@ title: "STAT420 Homework 2"
 author: "Alok K. Shukla"
 date: "09/05/2016"
 output:
+  pdf_document:
+    toc: yes
   html_document:
     theme: readable
-    toc: yes
-  pdf_document:
     toc: yes
 ---
 
@@ -173,7 +173,7 @@ eagleton = intelligence[intelligence$town=="eagleton",1]
 res = t.test(pawnee, eagleton, alternative = c("greater"), var.equal = TRUE)
 res$p.value
 ```
-We now have the p-value of our test, which is greater than our signi cance level (0.10), so we fail to reject the null hypothesis implying we cant say if Eagletonians are smarter than Pawnee people.
+We now have the p-value of our test, which is greater than our significance level (0.10), so we fail to reject the null hypothesis implying we cant say if Eagletonians are smarter than Pawnee people.
 
 
 **(d)** Repeat **(c)** using a two-sided alternative hypothesis. What changes?
