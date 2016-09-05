@@ -1,43 +1,26 @@
 ---
-title: 'STAT 420: Homework 2'
-author: "Summer 2016, Dalpiaz"
-date: 'Due: Tuesday, September 6 by 11:59 PM CDT'
+title: "STAT420 Homework 2"
+author: "Alok K. Shukla"
+date: "09/05/2016"
 output:
-  pdf_document:
-    toc: yes
   html_document:
     theme: readable
     toc: yes
+  pdf_document:
+    toc: yes
 ---
 
-> "The fool wonders, the wise man asks."
->
-> --- **Benjamin Disraeli**
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-# Directions
-
-Students are encouraged to work together on homework using the discussion boards. However, sharing, copying, or providing any part of a homework solution or code is an infraction of the University's rules on academic integrity. Any violation will be punished as severely as possible.
-
-- Your assignment must be submitted through Coursera. You are required to upload one `.zip` file, named `hw02_yourNetID.zip`, which contains:
-    - Your RMarkdown file which should be saved as `hw02_yourNetID.Rmd`. For example `hw02_dalpiaz2.Rmd`.
-    - The result of knitting your RMarkdown file as `hw02_yourNetID.html`. For example `hw02_dalpiaz2.html`.
-    - Any outside data provided as a `.csv` file used for the homework.
-    - This will roughly match the `.zip` provided.
-- Your resulting `.html` file will be considered a "report" which is the material that will determine the majority of your grade. Be sure to visibly include all `R` code and output that is relevant to answering the exercises. (You do not need to include irrelevant code you tried that resulted in error or did not answer the question correctly.)
-- You are granted an unlimited number of submissions, but only the last submission *before* the deadline will be viewed and graded.
-- If you use [this `.Rmd` file as a template](hw01-assign.Rmd), be sure to remove the quotation, directions section, and consider removing `eval = FALSE` from any code chunks provided (if you would like to run that code as part of your assignment).
-- Your `.Rmd` file should be written such that, when stored in a folder with any data you are asked to import, it will knit properly without modification. If your `.zip` file is organized properly, this should not be an issue.
-- Unless otherwise stated, you may use `R` for each of the exercises.
-- Be sure to read each exercise carefully!
-- Include your name and NetID in the final document, not only in your filenames.
-
-# Assignment
+# Assignment Solutions
 
 ## Exercise 1 (Writing Simple Functions)
 
-For each of the following parts, use the following vectors:
+Available vectors
 
-```{r}
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 a = 1:10
 b = 10:1
 c = rep(1, times = 10)
@@ -51,11 +34,25 @@ d = 2 ^ (1:10)
 - Output:
     - The sum of the squares of the elements of the vector. $\sum_{i = 1}^n x_i^2$
     
-Provide your function, as well as the result of running the following code:
+Provide the function, as well as the result of running the following code:
 
 ```{r, eval = FALSE}
 sum_of_squares(x = a)
 sum_of_squares(x = c(c, d))
+```
+
+**Solution**
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+sum_of_squares = function(x){
+  ssq = as.numeric(crossprod(x))
+}
+```
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+print(sum_of_squares(x = a))
+
+print(sum_of_squares(x = c(c, d)))
 ```
 
 **(b)** Write a function called `sum_of_power`.
@@ -66,13 +63,31 @@ sum_of_squares(x = c(c, d))
 - Output:
     - $\sum_{i = 1}^n x_i^{p}$
     
-Provide your function, as well as the result of running the following code:
+Provide the function, as well as the result of running the following code:
 
 ```{r, eval = FALSE}
 sum_of_power(x = a)
 sum_of_power(x = a, p = 3)
 sum_of_power(x = a, p = a)
 sum_of_power(x = a, p = c(1, 2))
+```
+
+**Solution**
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+sum_of_power = function(x,p=2){
+  sp = sum(x^p)
+}
+```
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+print(sum_of_power(x = a))
+
+print(sum_of_power(x = a, p = 3))
+
+print(sum_of_power(x = a, p = a))
+
+print(sum_of_power(x = a, p = c(1, 2)))
 ```
 
 **(c)** Write a function called `rms_diff`.
@@ -83,7 +98,7 @@ sum_of_power(x = a, p = c(1, 2))
 - Output:
     - $\sum_{i = 1}^n (x_i - y_i)^{2}$
     
-Provide your function, as well as the result of running the following code:
+Provide the function, as well as the result of running the following code:
 
 ```{r, eval = FALSE}
 rms_diff(x = a, y = b)
@@ -92,13 +107,49 @@ rms_diff(x = d, y = 1)
 rms_diff(x = a, y = 0) ^ 2 * length(a)
 ```
 
+**Solution**
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+rms_diff = function(x,y){
+  rms = sum((x-y)^2)
+}
+```
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+print(rms_diff(x = a, y = b))
+
+print(rms_diff(x = d, y = c))
+
+print(rms_diff(x = d, y = 1))
+
+print(rms_diff(x = a, y = 0) ^ 2 * length(a))
+```
+
 ## Exercise 2 (Plotting, Testing)
 
 For this exercise we will use the data that is [stored in `intelligence.csv`](intelligence.csv) which records IQs of a random sample of residents of Pawnee and Eagleton, Indiana.
 
 **(a)** Load the data from `intelligence.csv` into a variable in `R` called `intelligence`. Show the code used to do this. 
 
+**Solution**
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+intelligence <- read.csv("intelligence.csv")
+```
+
+
 **(b)** Create a side-by-side boxplot that compares the IQs across the two towns. Be sure to give the plot a title and label the axes appropriately.
+
+**Solution**
+
+```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+library(ggplot2)
+
+ggplot(intelligence, aes(x=town, y=iq)) + geom_boxplot(fill='#A4A4A4', color="darkblue") + ggtitle("Comparing IQs of two towns") 
+
+
+```
 
 **(c)** Are people from Eagleton smarter than people from Pawnee? Perform an appropriate statistical test using the given sample data. That is, test $H_0: \mu_E = \mu_P$ vs $H_1: \mu_E > \mu_P$, where
 
@@ -107,7 +158,36 @@ For this exercise we will use the data that is [stored in `intelligence.csv`](in
 
 Explicitly state the p-value of the test and the resulting statistical decision at a significance level $\alpha = 0.10$. Interpret the results in the context of the problem.
 
+**Solution**
+The null hypothesis
+
+ $H_0: \mu_E = \mu_P$
+
+Alternate hypothesis
+
+ $H_1: \mu_E > \mu_P$
+ 
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+pawnee = intelligence[intelligence$town=="pawnee",1]
+eagleton = intelligence[intelligence$town=="eagleton",1]
+res = t.test(pawnee, eagleton, alternative = c("greater"), var.equal = TRUE)
+res$p.value
+```
+We now have the p-value of our test, which is greater than our signi cance level (0.10), so we fail to reject the null hypothesis implying we cant say if Eagletonians are smarter than Pawnee people.
+
+
 **(d)** Repeat **(c)** using a two-sided alternative hypothesis. What changes?
+
+**Solution**
+
+ 
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+res2 = t.test(pawnee, eagleton, alternative = c("two.sided"), var.equal = TRUE)
+res2$p.value
+```
+
+The p-value increases, we still fail to reject null hypothesis.
 
 ## Exercise 3 (Writing More Functions)
 
@@ -129,12 +209,37 @@ The function should output:
 
 In order to output both, consider using `c(t, pval)` as the last line of your function, and store those two values elsewhere in the body of your function.
 
+**Solution**
+
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+do_t_test = function(x,mu=0){
+  x_bar = mean(x)
+  s = sd(x) 
+  mu_0 = mu
+  n= length(x)
+  t = (x_bar - mu_0) / (s / sqrt(n))
+  pval = 2*pt(t,df=n-1)
+  c(t, pval)
+}
+
+```
+
+
 **(b)** Write a function called `make_decision` which takes two inputs:
 
 - `pval`: The p-value of a test.
 - `alpha`: The significance level of a test. Set a default value of `0.05`.
 
 The function should output `"Reject!"` or `"Fail to Reject."` based on the comparison of `pval` to `alpha`.
+
+**Solution**
+
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+make_decision = function(pval,alpha){
+  ifelse(pval>=alpha,"Fail to Reject","Reject")
+}
+
+```
 
 **(c)** Now we will test the quality of your functions from parts **(a)** and **(b)**. Run the following code:
 
@@ -147,6 +252,16 @@ make_decision(pval, alpha = 0.10)
 ```
 
 If your `do_t_test()` and `make_decision()` functions are correct, you should obtain a decision of `"Fail to Reject."` You will also be evaluated on whether the numeric p-value you obtain is correct.
+
+**Solution**
+
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+set.seed(42)
+y = rnorm(25, 1.4, 1)
+pval = do_t_test(y, mu = 2)[2]
+pval
+make_decision(pval, alpha = 0.10)
+```
 
 
 
@@ -180,7 +295,41 @@ set.seed(birthday)
 
 **(b)** Simulate 10000 samples of size **5** from an exponential distribution with $\lambda = 2$. Store the mean of each sample in a vector. Plot a histogram of these sample means. (Be sure to give it a title, and label the axes appropriately.) Based on the histogram, do you think the central limit theorem applies here?
 
+**Solution**
+
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+x = data.frame(rep(0,10000))
+x_bars = apply(x, 1, function(x) mean(rexp(5,2)))
+
+
+x_bar_hist = hist(x_bars, breaks = 50, 
+                  main = "Histogram of Sample Means",
+                  xlab = "Sample Means")
+
+```
+
+We can see from the histogram that the distribution of sample means is not perfectly normal; its right tail is longer. Thus, the Central Limit Theorem doesn't hold.
+
 **(c)** Simulate 10000 samples of size **100** from an exponential distribution with $\lambda = 2$. Store the mean of each sample in a vector. Plot a histogram of these sample means. (Be sure to give it a title, and label the axes appropriately.) Based on the histogram, do you think the central limit theorem applies here?
+
+**Solution**
+
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+x = data.frame(rep(0,10000))
+x_bars = apply(x, 1, function(x) mean(rexp(100,2)))
+
+
+x_bar_hist = hist(x_bars, breaks = 50, 
+                  main = "Histogram of Sample Means",
+                  xlab = "Sample Means")
+
+```
+
+
+We can see from the histogram that the distribution of sample means is perfectly normal; there is no skewness. Thus, the Central Limit Theorem holds.
+
 
 **(d)** We just repeated ourselves, so that means we probably should be writing a function. Write a function called `sim_xbars_exp` which takes three inputs:
 
@@ -191,6 +340,21 @@ set.seed(birthday)
 The function should output a vector of sample means which are the result of sampling from an exponential distribution as specified by the inputs.
 
 Use your function to simulate 25000 samples of size **50** from an exponential distribution with $\lambda = 3$. Store the mean of each sample in a vector. Plot a histogram of these sample means. (Be sure to give it a title, and label the axes appropriately.)
+
+**Solution**
+
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+sim_xbars_exp = function(no_of_iter, sample_size, rate_param){
+  x = data.frame(rep(0,no_of_iter))
+  apply(x, 1, function(x) mean(rexp(sample_size,rate_param)))
+}
+
+
+x_bar_hist = hist(sim_xbars_exp(25000,50,3), breaks = 50, 
+                  main = "Histogram of Sample Means",
+                  xlab = "Sample Means")
+
+```
 
 ## Exercise 5 (More Simulation)
 
@@ -208,6 +372,37 @@ Suppose we take samples of size $n_x = 10$ from $X$ and take samples of size $n_
 
 What is the (sampling) distribution of $\frac{s_x}{m_y}$? Who knows? Ask a statistician interested in theory. Instead of using mathematics, simulate $\frac{s_x}{m_y}$ 5000 times and store the results. Plot a histogram of the observed values of $\frac{s_x}{m_y}$. Comment on the shape of the histogram and empirical distribution of $\frac{s_x}{m_y}$. Before running your code, set the same seed used for the previous exercise. For full credit, do **not** use a `for` loop.
 
+**Solution**
+
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+birthday = 18760613
+set.seed(birthday)
+
+x = data.frame(rep(0,5000))
+x_bars = apply(x, 1, function(x) sd(rexp(10,2)))
+y_bars = apply(x, 1, function(x) median(rpois(5,3)))
+z_bars = x_bars/y_bars
+z_bar_hist = hist(z_bars, breaks = 50, 
+                  main = "Histogram of Ratio of Sample SD and Sample Median",
+                  xlab = "Sample SD/Sample Median")
+
+
+```
+
+The histogram doesnt like that of a Normal Distribution. It looks more like a Gamma distribution. We can try to fit it in one as following.
+```{r,eval=FALSE}
+install.packages("fitdistrplus")
+```
+
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+library("fitdistrplus")
+## Remove Inf from z_bars
+z_bars_1 = z_bars[z_bars!=Inf]
+fit.gamma = fitdist(z_bars_1, "gamma")
+fit.gamma
+plot(fit.gamma)
+gofstat(fit.gamma)
+```
 
 
 
