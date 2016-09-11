@@ -43,16 +43,18 @@ sum_of_squares(x = c(c, d))
 
 **Solution**
 
+We use the `crossprod` function as discussed in previous assignment.
+
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 sum_of_squares = function(x){
-  ssq = as.numeric(crossprod(x))
+  as.numeric(crossprod(x))
 }
 ```
 
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-print(sum_of_squares(x = a))
+sum_of_squares(x = a)
 
-print(sum_of_squares(x = c(c, d)))
+sum_of_squares(x = c(c, d))
 ```
 
 **(b)** Write a function called `sum_of_power`.
@@ -74,20 +76,24 @@ sum_of_power(x = a, p = c(1, 2))
 
 **Solution**
 
+Using `^` operator.
+
+
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 sum_of_power = function(x,p=2){
-  sp = sum(x^p)
+  sum(x^p)
 }
 ```
 
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-print(sum_of_power(x = a))
 
-print(sum_of_power(x = a, p = 3))
+sum_of_power(x = a)
 
-print(sum_of_power(x = a, p = a))
+sum_of_power(x = a, p = 3)
 
-print(sum_of_power(x = a, p = c(1, 2)))
+sum_of_power(x = a, p = a)
+
+sum_of_power(x = a, p = c(1, 2))
 ```
 
 **(c)** Write a function called `rms_diff`.
@@ -109,20 +115,23 @@ rms_diff(x = a, y = 0) ^ 2 * length(a)
 
 **Solution**
 
+Standard operations.
+
+
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 rms_diff = function(x,y){
-  rms = sum((x-y)^2)
+  sum((x-y)^2)
 }
 ```
 
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-print(rms_diff(x = a, y = b))
+rms_diff(x = a, y = b)
 
-print(rms_diff(x = d, y = c))
+rms_diff(x = d, y = c)
 
-print(rms_diff(x = d, y = 1))
+rms_diff(x = d, y = 1)
 
-print(rms_diff(x = a, y = 0) ^ 2 * length(a))
+rms_diff(x = a, y = 0) ^ 2 * length(a)
 ```
 
 ## Exercise 2 (Plotting, Testing)
@@ -141,6 +150,8 @@ intelligence <- read.csv("intelligence.csv")
 **(b)** Create a side-by-side boxplot that compares the IQs across the two towns. Be sure to give the plot a title and label the axes appropriately.
 
 **Solution**
+
+Using `ggplot2` library's methods. Setting Aesthetics and Title parameters.
 
 ```{r, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
@@ -193,9 +204,6 @@ The p-value increases, we still fail to reject null hypothesis.
 
 In this exercise we will write our own functions related to performing a one-sample $t$ test. That is $H_{0}: \mu = \mu_{0}$ versus $H_{1}: \mu \neq \mu_{0},$ where $\mu_{0}$ is the hypothesized value of $\mu$.
 
-Throughout this exercise you may **not** use the `t.test()` function inside your functions. You may use it to check your work separately, but no such double-checks should appear in your final report.
-
-Some built in `R` functions that may be useful to you when writing your functions include: `c()`, `ifelse()`, `mean()`, `sd()`, `abs()`, `length()`, `sqrt()`, and `pt()`.
 
 **(a)** Write a function called `do_t_test` which takes two inputs:
 
@@ -207,7 +215,6 @@ The function should output:
 - The value of the test statistic, $t$.
 - The p-value of the test. The function only needs to be able to handle a two-sided alternative.
 
-In order to output both, consider using `c(t, pval)` as the last line of your function, and store those two values elsewhere in the body of your function.
 
 **Solution**
 
@@ -218,7 +225,7 @@ do_t_test = function(x,mu=0){
   mu_0 = mu
   n= length(x)
   t = (x_bar - mu_0) / (s / sqrt(n))
-  pval = 2*pt(t,df=n-1)
+  pval = 2*pt(-abs(t),df=n-1) ## two tailed
   c(t, pval)
 }
 
@@ -236,7 +243,7 @@ The function should output `"Reject!"` or `"Fail to Reject."` based on the compa
 
 ```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 make_decision = function(pval,alpha){
-  ifelse(pval>=alpha,"Fail to Reject","Reject")
+  ifelse(pval>alpha,"Fail to Reject.","Reject.")
 }
 
 ```
@@ -251,7 +258,6 @@ pval
 make_decision(pval, alpha = 0.10)
 ```
 
-If your `do_t_test()` and `make_decision()` functions are correct, you should obtain a decision of `"Fail to Reject."` You will also be evaluated on whether the numeric p-value you obtain is correct.
 
 **Solution**
 
@@ -277,25 +283,27 @@ f(x;\lambda) = \lambda e ^ {-\lambda x}
 
 for $x \geq 0$.
 
-Also recall,
 
-\[
-\begin{aligned}
-\mu &= E[X] = \frac{1}{\lambda} \\
-\sigma^ 2 &= Var[X] = \frac{1}{\lambda ^ 2}
-\end{aligned}
-\]
-
-**(a)** This exercise relies heavily on generating random observations. To make this reproducible we will set a seed for the randomization. Alter the following code to make `birthday` store your birthday in the format: `yyyymmdd`. For example, [William Gosset](https://en.wikipedia.org/wiki/William_Sealy_Gosset), better known as *Student*, was born on June 13, 1876, so he would use:
+**(a)** This exercise relies heavily on generating random observations. To make this reproducible we will set a seed for the randomization. Alter the following code to make `birthday` store your birthday in the format: `yyyymmdd`. 
 
 ```{r}
 birthday = 18760613
 set.seed(birthday)
 ```
 
+**Solution**
+
+```{r}
+birthday = 19920120
+set.seed(birthday)
+```
+
+
 **(b)** Simulate 10000 samples of size **5** from an exponential distribution with $\lambda = 2$. Store the mean of each sample in a vector. Plot a histogram of these sample means. (Be sure to give it a title, and label the axes appropriately.) Based on the histogram, do you think the central limit theorem applies here?
 
 **Solution**
+
+We use `apply` method with a custom function to replace the traditional `for` loop that re-assigns values in a vector. 
 
 ```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
@@ -309,7 +317,7 @@ x_bar_hist = hist(x_bars, breaks = 50,
 
 ```
 
-We can see from the histogram that the distribution of sample means is not perfectly normal; its right tail is longer. Thus, the Central Limit Theorem doesn't hold.
+We can see from the histogram that the distribution of sample means is not normal; its right tail is longer. Thus, the Central Limit Theorem doesn't hold.
 
 **(c)** Simulate 10000 samples of size **100** from an exponential distribution with $\lambda = 2$. Store the mean of each sample in a vector. Plot a histogram of these sample means. (Be sure to give it a title, and label the axes appropriately.) Based on the histogram, do you think the central limit theorem applies here?
 
@@ -328,7 +336,7 @@ x_bar_hist = hist(x_bars, breaks = 50,
 ```
 
 
-We can see from the histogram that the distribution of sample means is perfectly normal; there is no skewness. Thus, the Central Limit Theorem holds.
+We can see from the histogram that the distribution of sample means is normal; there is no skewness. Thus, the Central Limit Theorem holds.
 
 
 **(d)** We just repeated ourselves, so that means we probably should be writing a function. Write a function called `sim_xbars_exp` which takes three inputs:
@@ -339,7 +347,7 @@ We can see from the histogram that the distribution of sample means is perfectly
 
 The function should output a vector of sample means which are the result of sampling from an exponential distribution as specified by the inputs.
 
-Use your function to simulate 25000 samples of size **50** from an exponential distribution with $\lambda = 3$. Store the mean of each sample in a vector. Plot a histogram of these sample means. (Be sure to give it a title, and label the axes appropriately.)
+Use your function to simulate 25000 samples of size **50** from an exponential distribution with $\lambda = 3$. Store the mean of each sample in a vector. Plot a histogram of these sample means.
 
 **Solution**
 
@@ -350,9 +358,9 @@ sim_xbars_exp = function(no_of_iter, sample_size, rate_param){
 }
 
 
-x_bar_hist = hist(sim_xbars_exp(25000,50,3), breaks = 50, 
-                  main = "Histogram of Sample Means",
-                  xlab = "Sample Means")
+x_bar_hist = hist(sim_xbars_exp(25000,50,3), breaks = 50,
+            main = "Histogram of Sample Means",
+            xlab = "Sample Means")
 
 ```
 
@@ -370,39 +378,74 @@ Suppose we take samples of size $n_x = 10$ from $X$ and take samples of size $n_
 \frac{s_x}{m_y}.
 \]
 
-What is the (sampling) distribution of $\frac{s_x}{m_y}$? Who knows? Ask a statistician interested in theory. Instead of using mathematics, simulate $\frac{s_x}{m_y}$ 5000 times and store the results. Plot a histogram of the observed values of $\frac{s_x}{m_y}$. Comment on the shape of the histogram and empirical distribution of $\frac{s_x}{m_y}$. Before running your code, set the same seed used for the previous exercise. For full credit, do **not** use a `for` loop.
+Simulate $\frac{s_x}{m_y}$ 5000 times and store the results. Plot a histogram of the observed values of $\frac{s_x}{m_y}$. Comment on the shape of the histogram and empirical distribution of $\frac{s_x}{m_y}$. Before running your code, set the same seed used for the previous exercise. 
 
 **Solution**
 
 ```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
-birthday = 18760613
 set.seed(birthday)
 
-x = data.frame(rep(0,5000))
-x_bars = apply(x, 1, function(x) sd(rexp(10,2)))
-y_bars = apply(x, 1, function(x) median(rpois(5,3)))
-z_bars = x_bars/y_bars
-z_bar_hist = hist(z_bars, breaks = 50, 
-                  main = "Histogram of Ratio of Sample SD and Sample Median",
-                  xlab = "Sample SD/Sample Median")
+N = data.frame(rep(0,5000))
+s_x = apply(N, 1, function(N) sd(rexp(10,2)))
+m_y = apply(N, 1, function(N) median(rpois(5,3)))
+new_var = s_x/m_y
+new_var_hist = hist(new_var, breaks = 50,
+  main = "Histogram of Ratio of Sample SD and Sample Median",
+  xlab = "Sample SD/Sample Median")
 
 
 ```
 
 The histogram doesnt like that of a Normal Distribution. It looks more like a Gamma distribution. We can try to fit it in one as following.
+
 ```{r,eval=FALSE}
 install.packages("fitdistrplus")
 ```
 
-```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+```{r,message=F, warning=F}
 library("fitdistrplus")
+```
+
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
 ## Remove Inf from z_bars
-z_bars_1 = z_bars[z_bars!=Inf]
-fit.gamma = fitdist(z_bars_1, "gamma")
+new_var_clean = new_var[new_var!=Inf]
+fit.gamma = fitdist(new_var_clean, "gamma")
 fit.gamma
 plot(fit.gamma)
 gofstat(fit.gamma)
 ```
 
+Lets try to plot sample means of `new_var` and check if Central Limit Theorem holds.
 
+First by re-generating using the fitted `gamma` distribution. A Gamma distribution is defined by `shape` and `rate`; which we populate from fitted `fit.gamma`.
+
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+x = data.frame(rep(0,10000))
+x_bars = apply(x, 1, function(x) mean(rgamma(as.numeric(fit.gamma$estimate["shape"]),as.numeric(fit.gamma$estimate["rate"]))))
+
+
+x_bar_hist = hist(x_bars, breaks = 50, 
+main = "Histogram of Sample Means (Generated using Gamma dist.)",
+xlab = "Sample Means")
+
+```
+
+
+ Now with resampling the orginal distribution of `new_var` using the `sample` method ( sample size =100 ).
+ 
+```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+
+x = data.frame(rep(0,10000))
+x_bars = apply(x, 1, function(x) mean(sample(new_var, 100, replace = TRUE)))
+
+
+x_bar_hist = hist(x_bars, breaks = 50, 
+  main = "Histogram of Sample Means (Bootstrapped)",
+  xlab = "Sample Means")
+
+```
+
+We thus conclude that the Central Limit Theorem holds.
 
