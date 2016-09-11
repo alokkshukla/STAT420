@@ -249,13 +249,13 @@ ggplot(intelligence, aes(x = town, y = iq)) + geom_boxplot(fill = &quot;#A4A4A4&
 <p><span class="math inline">\(H_1: \mu_E &gt; \mu_P\)</span></p>
 <pre class="r"><code>pawnee = intelligence[intelligence$town == &quot;pawnee&quot;, 1]
 eagleton = intelligence[intelligence$town == &quot;eagleton&quot;, 1]
-res = t.test(pawnee, eagleton, alternative = c(&quot;greater&quot;), var.equal = TRUE)
+res = t.test(eagleton, pawnee, alternative = c(&quot;greater&quot;), var.equal = TRUE)
 res$p.value</code></pre>
-<pre><code>## [1] 0.652316</code></pre>
+<pre><code>## [1] 0.347684</code></pre>
 <p>We now have the p-value of our test, which is greater than our significance level (0.10), so we fail to reject the null hypothesis implying we cant say if Eagletonians are smarter than Pawnee people.</p>
 <p><strong>(d)</strong> Repeat <strong>(c)</strong> using a two-sided alternative hypothesis. What changes?</p>
 <p><strong>Solution</strong></p>
-<pre class="r"><code>res2 = t.test(pawnee, eagleton, alternative = c(&quot;two.sided&quot;), 
+<pre class="r"><code>res2 = t.test(eagleton, pawnee, alternative = c(&quot;two.sided&quot;), 
     var.equal = TRUE)
 res2$p.value</code></pre>
 <pre><code>## [1] 0.6953681</code></pre>

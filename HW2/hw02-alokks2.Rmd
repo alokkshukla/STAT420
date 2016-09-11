@@ -3,10 +3,10 @@ title: "STAT420 Homework 2"
 author: "Alok K. Shukla"
 date: "09/05/2016"
 output:
-  pdf_document:
-    toc: yes
   html_document:
     theme: readable
+    toc: yes
+  pdf_document:
     toc: yes
 ---
 
@@ -170,7 +170,7 @@ Alternate hypothesis
 ```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 pawnee = intelligence[intelligence$town=="pawnee",1]
 eagleton = intelligence[intelligence$town=="eagleton",1]
-res = t.test(pawnee, eagleton, alternative = c("greater"), var.equal = TRUE)
+res = t.test(eagleton, pawnee, alternative = c("greater"), var.equal = TRUE)
 res$p.value
 ```
 We now have the p-value of our test, which is greater than our significance level (0.10), so we fail to reject the null hypothesis implying we cant say if Eagletonians are smarter than Pawnee people.
@@ -183,7 +183,7 @@ We now have the p-value of our test, which is greater than our significance leve
  
 ```{r,tidy=TRUE, tidy.opts=list(width.cutoff=60)}
 
-res2 = t.test(pawnee, eagleton, alternative = c("two.sided"), var.equal = TRUE)
+res2 = t.test(eagleton, pawnee, alternative = c("two.sided"), var.equal = TRUE)
 res2$p.value
 ```
 
