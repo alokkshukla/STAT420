@@ -1,0 +1,242 @@
+---
+title: 'STAT 420: Homework 3'
+author: "Summer 2016, Dalpiaz"
+date: 'Due: Monday, September 12 by 11:59 PM CDT'
+output:
+  html_document:
+    theme: readable
+    toc: yes
+---
+
+> "Wise man say: 'Forgiveness is divine, but never pay full price for late pizza.'"
+>
+> --- **Michaelangelo**, Teenage Mutant Ninja Turtles (1990)
+
+# Directions
+
+Students are encouraged to work together on homework using the discussion boards. However, sharing, copying, or providing any part of a homework solution or code is an infraction of the University's rules on academic integrity. Any violation will be punished as severely as possible.
+
+- Your assignment must be submitted through Coursera. You are required to upload one `.zip` file, named `hw03_yourNetID.zip`, which contains:
+    - Your RMarkdown file which should be saved as `hw03_yourNetID.Rmd`. For example `hw03_dalpiaz2.Rmd`.
+    - The result of knitting your RMarkdown file as `hw03_yourNetID.html`. For example `hw03_dalpiaz2.html`.
+    - Any outside data provided as a `.csv` file used for the homework.
+    - This will roughly match the `.zip` provided.
+- Your resulting `.html` file will be considered a "report" which is the material that will determine the majority of your grade. Be sure to visibly include all `R` code and output that is relevant to answering the exercises. (You do not need to include irrelevant code you tried that resulted in error or did not answer the question correctly.)
+- You are granted an unlimited number of submissions, but only the last submission *before* the deadline will be viewed and graded.
+- If you use [this `.Rmd` file as a template](hw01-assign.Rmd), be sure to remove the quotation, directions section, and consider removing `eval = FALSE` from any code chunks provided (if you would like to run that code as part of your assignment).
+- Your `.Rmd` file should be written such that, when stored in a folder with any data you are asked to import, it will knit properly without modification. If your `.zip` file is organized properly, this should not be an issue.
+- Unless otherwise stated, you may use `R` for each of the exercises.
+- Be sure to read each exercise carefully!
+- Include your name and NetID in the final document, not only in your filenames.
+
+# Assignment
+
+## Exercise 1 (Using `lm`)
+
+For this exercise we will use the `faithful` dataset. This is a default dataset in `R`, so there is no need to load it. You should use `?faithful` to learn about the background of this dataset.
+
+**(a)** Suppose we would like to predict the duration of an eruption of [the Old Faithful geyser](http://www.yellowstonepark.com/about-old-faithful/) in [Yellowstone National Park](https://en.wikipedia.org/wiki/Yellowstone_National_Park) based on the waiting time before an eruption. Fit a simple linear model in `R` that accomplishes this task. Store the results in a variable called `faithful_model`. Output the result of calling `summary()` on `faithful_model`.
+
+**(b)** Output only the estimated regression coefficients. Interpret $\beta_0$ and $\hat{\beta_1}$ in the *context of the problem*. Be aware that only one of those is an estimate.
+
+**(c)** Use your model to predict the duration of an eruption based on a waiting time of **80** minutes. Do you feel confident in this prediction? Briefly explain.
+
+**(d)** Use your model to predict the duration of an eruption based on a waiting time of **120** minutes. Do you feel confident in this prediction? Briefly explain.
+
+**(e)** Calculate the RSS for this model.
+
+**(f)** Create a scatterplot of the data and add the fitted regression line. Make sure your plot is well labeled and is somewhat visually appealing.
+
+**(g)** Report the value of $R^2$ for the model. Do so directly. Do not simply copy and paste the value from the full output in the console after running `summary()` in part **(a)**.
+
+## Exercise 2 (Writing Functions)
+
+This exercise is a continuation of Exercise 1.
+
+**(a)** Write a function called `get_sd_est` that calculates an estimate of $\sigma$ in one of two ways depending on input to the function. The function should take two arguments as input:
+
+- `model_resid` - A vector of residual values from a fitted model.
+- `mle` - A logical (`TRUE` / `FALSE`) variable which defaults to `FALSE`.
+
+The function should return a single value:
+
+- $s_e$ if `mle` is set to `FALSE`.
+- $\hat{\sigma}$ if `mle` is set to `TRUE`.
+
+**(b)** Run the function `get_sd_est` on the residuals from the model in Exercise 1, with `mle` set to `FALSE`.
+
+**(c)** Run the function `get_sd_est` on the residuals from the model in Exercise 1, with `mle` set to `TRUE`.
+
+**(d)** To check your work, output `summary(faithful_model)$sigma`. It should match at least one of **(b)** or **(c)**.
+
+## Exercise 3 (Simulating SLR)
+
+Consider the model
+
+\[
+Y_i = 3 - 7 x_i + \epsilon_i
+\]
+
+with 
+
+\[
+\epsilon_i \sim N(\mu = 0, \sigma^2 = 4)
+\]
+
+where $\beta_0 = 3$ and $\beta_1 = -7$.
+
+Before answering the following parts, set a seed value equal to **your** birthday, as was done in the previous assignment.
+
+```{r}
+birthday = 18760613
+set.seed(birthday)
+```
+
+**(a)** Use `R` to simulate `n = 50` observations from the above model. For the remainder of this exercise, use the following "known" values of $x$.
+
+```{r}
+x = runif(n = 50, 0, 10)
+```
+
+You may use [the `sim_slr ` function provided in the text](http://daviddalpiaz.github.io/appliedstats/simple-linear-regression.html#simulating-slr). Store the data frame this function returns in a variable of your choice. Note that this function calls $y$ `response` and $x$ `predictor`.
+
+**(b)** Fit a model to your simulated data. Report the estimated coefficients. Are they close to what you would expect? Briefly explain.
+
+**(c)** Plot the data you simulated in part **(a)**. Add the regression line from part **(b)**. Hint: Keep the two commands in the same chunk, so `R` knows what plot to add the line to when knitting your `.Rmd` file.
+
+**(d)** Use `R` to repeat the process of simulating `n = 50` observations from the above model $2000$ times. Each time fit a SLR model to the data and store the value of $\hat{\beta_1}$ in a variable called `beta_hat_1`. Some hints:
+
+- Use a `for` loop.
+- Create `beta_hat_1` before writing the `for` loop. Make it a vector of length $2000$ where each element is `0`.
+- Inside the body of the `for` loop, simulate new $y$ data each time. Use a variable to temporarily store this data together with the known $x$ data as a data frame.
+- After simulating the data, use `lm()` to fit a regression. Use a variable to temporarily store this output.
+- Use the `coef()` function and `[]` to extract the correct estimated coefficient.
+- Use `beta_hat_1[i]` to store in elements of `beta_hat_1`.
+- See the notes on [Distribution of a Sample Mean](http://daviddalpiaz.github.io/appliedstats/introduction-to-r.html#distribution-of-a-sample-mean) for some inspiration.
+
+You can do this differently if you like. Use of these hints is not required.
+
+**(e)** Report the mean and standard deviation of `beta_hat_1`. Do either of these look familiar?
+
+**(f)** Plot a histogram of `beta_hat_1`. Comment on the shape of this histogram.
+
+## Exercise 4 (Be a Skeptic)
+
+Consider the model
+
+\[
+Y_i = 10 + 0 x_i + \epsilon_i
+\]
+
+with
+
+\[
+\epsilon_i \sim N(\mu = 0, \sigma^2 = 1)
+\]
+
+where $\beta_0 = 10$ and $\beta_1 = 0$.
+
+Before answering the following parts, set a seed value equal to **your** birthday, as was done in the previous assignment.
+
+```{r}
+birthday = 18760613
+set.seed(birthday)
+```
+
+**(a)** Use `R` to repeat the process of simulating `n = 25` observations from the above model $1500$ times. For the remainder of this exercise, use the following "known" values of $x$.
+
+```{r}
+x = runif(n = 25, 0, 10)
+```
+
+Each time fit a SLR model to the data and store the value of $\hat{\beta_1}$ in a variable called `beta_hat_1`. You may use [the `sim_slr ` function provided in the text](http://daviddalpiaz.github.io/appliedstats/simple-linear-regression.html#simulating-slr). Hint: Yes $\beta_1 = 0$.
+
+**(b)** Plot a histogram of `beta_hat_1`. Comment on the shape of this histogram.
+
+**(c)** Import the data in [`skeptic.csv`](skeptic.csv) and fit a SLR model. The variable names in `skeptic.csv` follow the same convention as those returned by `sim_slr()`. Extract the fitted coefficient for $\beta_1$.
+
+**(d)** Re-plot the histogram from **(b)**. Now add a vertical red line at the value of $\hat{\beta_1}$ in part **(c)**. To do so, you'll need to use `abline(v = c, col = "red")` where `c` is your value.
+
+**(e)** Your value of $\hat{\beta_1}$ in **(c)** should be positive. What proportion of the `beta_hat_1` values are larger than your $\hat{\beta_1}$? Return this proportion, as well as this proportion multiplied by `2`.
+
+**(f)** Based on your histogram and part **(e)**, do you think the [`skeptic.csv`](skeptic.csv) data could have been generated by the model given above? Briefly explain.
+
+## Exercise 5 (Comparing Models)
+
+For this exercise we will use the data stored in [`goalies.csv`](goalies.csv). It contains career data for all 716 players in the history of the National Hockey League to play goaltender through the 2014-2015 season. The variables in the dataset are:
+
+- `Player` - NHL Player Name
+- `First` - First year of NHL career
+- `Last` - Last year of NHL career
+- `GP` - Games Played
+- `GS` - Games Started
+- `W` - Wins
+- `L` - Losses
+- `TOL` - Ties/Overtime/Shootout Losses
+- `GA` - Goals Against
+- `SA` - Shots Against
+- `SV` - Saves
+- `SV_PCT` - Save Percentage
+- `GAA` - Goals Against Average
+- `SO` - Shutouts
+- `MIN` - Minutes
+- `G` - Goals (that the player recorded, not opponents)
+- `A` - Assists (that the player recorded, not opponents)
+- `PTS` - Points (that the player recorded, not opponents)
+- `PIM` - Penalties in Minutes
+
+For this exercise we will define the "Root Mean Square Error" of a model as
+
+\[
+RMSE = \sqrt{\frac{1}{n} \sum_{i = 1}^{n}(y_i - \hat{y}_i)^2}.
+\]
+
+**(a)** Fit a model with "wins"" as the response and "minutes" as the predictor. Calculate the RMSE of this model. Also provide a scatterplot with the fitted regression line.
+
+**(b)** Fit a model with "wins"" as the response and "goals against" as the predictor. Calculate the RMSE of this model. Also provide a scatterplot with the fitted regression line.
+
+**(c)** Fit a model with "wins"" as the response and "shutouts" as the predictor. Calculate the RMSE of this model. Also provide a scatterplot with the fitted regression line.
+
+**(d)** Based on the previous three models, which of the three predictors used is most helpful for predicting wins? Briefly explain.
+
+**(e)** *This question is not graded. You may delete it if you like.* How many games did Ed Belfour win? Why is he David Dalpiaz's favorite goalie on this list?
+
+## Exercise 00 (SLR without Intercept)
+
+**This exercise will _not_ be graded and is simply provided for your information. No credit will be given for the completion of this exercise. Give it a try now, and be sure to read the solutions later.**
+
+Sometimes it can be reasonable to assume that $\beta_0$ should be 0. That is, the line should pass through the point $(0, 0)$. For example, if a car is traveling 0 miles per hour, its stopping distance should be 0! (Unlike what we saw in the book.)
+
+We can simply define a model without an intercept,
+
+\[
+Y_i = \beta x_i + \epsilon_i.
+\]
+
+**(a)** [In the **Least Squares Approach** section of the text](http://daviddalpiaz.github.io/appliedstats/simple-linear-regression.html#least-squares-approach) you saw the calculus behind the derivation of the regression estimates, and then we performed the calculation for the `cars` dataset using `R`. Here you need to do, but not show, the derivation for the slope only model. You should then use that derivation of $\hat{\beta}$ to write a function that performs the calculation for the estimate you derived. 
+
+In summary, use the method of least squares to derive an estimate for $\beta$ using data points $(x_i, y_i)$ for $i = 1, 2, \ldots n$. Simply put, find the value of $\beta$ to minimize the function
+
+\[
+f(\beta)=\sum_{i=1}^{n}(y_{i}-\beta x_{i})^{2}.
+\]
+
+Then, write a function `get_beta_no_int` that takes input:
+
+- `x` - A predictor variable.
+- `y` - A response variable.
+
+The function should then output the $\hat{\beta}$ you derived for a given set of data.
+
+**(b)** Write your derivation in your `.Rmd` file using TeX. Or write your derivation by hand, scan or photograph your work, and insert it into the `.Rmd` as an image. See the RMarkdown documentation for working with images.
+
+**(c)** Test your function on the `faithful` data using the waiting time as `x` and the eruption length as `y`. What is the estimate for $\beta$ for this data?
+
+**(d)** Check your work in `R`. The following syntax can be used to fit a model without an intercept:
+
+```{r, eval = FALSE}
+lm(response ~ 0 + predictor, data = dataset)
+```
+
+Use this to fit a model to the `faithful` data without an intercept. Output the coefficient of the fitted model. It should match your answer to **(c)**.
+
