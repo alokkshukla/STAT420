@@ -348,7 +348,7 @@ prop
 
 **Solution**
 ```{r,message=FALSE}
-within_95 = beta_1_hat > (mean(beta_hat_1) + 2*sd(beta_hat_1))
+within_95 = beta_1_hat < (mean(beta_hat_1) + 2*sd(beta_hat_1))
 within_95
 ```
 
