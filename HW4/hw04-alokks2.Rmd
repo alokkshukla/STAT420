@@ -696,11 +696,11 @@ count
 
 ```{r}
 count = 0;
-for (i in 1:num_samples)
-  if (0.05<=upper_90[i] & -0.05>=lower_90[i]){
+for (i in 1:num_samples){
+  if (0<=upper_90[i] & 0>=lower_90[i]){
     count = count+1;
   }
-
+}
 1-(count/num_samples)
 
 ```
@@ -747,7 +747,7 @@ count
 ```{r}
 count = 0;
 for (i in 1:num_samples)
-  if (0.005<=upper_99[i] & -0.005>=lower_99[i]){
+  if (0<=upper_99[i] & 0>=lower_99[i]){
     count = count+1;
   }
 
