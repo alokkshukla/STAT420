@@ -54,13 +54,13 @@ beta_1_hat_pval = faithful_model_test_info[2,4] # Pr(>|t|)
 For $\beta_0$
  
 $H_0:\beta_0=0$
-$H_1:\beta_0≠0$
+$H_1:\beta_0!=0$
  
  
 For $\beta_1$
  
 $H_0:\beta_1=0$
-$H_1:\beta_1≠0$
+$H_1:\beta_1!=0$
 
 
 *The value of the test statistic*
@@ -134,7 +134,6 @@ We are 99% confident that for an increase in waiting time of 1 minute, the avera
 
 **(c)** Calculate a 90% confidence interval for $\beta_0$. Give an interpretation of the interval in the context of the problem.
 
-**Solution**
 
 **Solution**
 
@@ -244,7 +243,7 @@ $H_0:\beta_1=0$
 
 Total cholesterol does not depend on weight.
  
-$H_1:\beta_1≠0$
+$H_1:\beta_1!=0$
  
 Total cholesterol does depend on weight.
  
@@ -325,7 +324,7 @@ $H_0:\beta_1=0$
 
 Total hdl does not depend on weight.
  
-$H_1:\beta_1≠0$
+$H_1:\beta_1!=0$
  
 Total hdl does depend on weight.
  
@@ -725,7 +724,7 @@ for ( i in 1:num_samples){
 
 
 
-**(c)** What proportion of these intervals contain the true value of $\beta_0$?
+**(f)** What proportion of these intervals contain the true value of $\beta_0$?
 
 **Solution**
 
