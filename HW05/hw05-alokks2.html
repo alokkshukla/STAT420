@@ -9,7 +9,7 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="Alok K. Shukla" />
+<meta name="author" content="Alok K. Shukla ( alokks2 )" />
 
 
 <title>STAT420 Homework 5</title>
@@ -116,7 +116,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">STAT420 Homework 5</h1>
-<h4 class="author"><em>Alok K. Shukla</em></h4>
+<h4 class="author"><em>Alok K. Shukla ( alokks2 )</em></h4>
 <h4 class="date"><em>9/26/2016</em></h4>
 
 </div>
@@ -136,25 +136,6 @@ $(document).ready(function () {
 <h1>Assignment Solutions</h1>
 <div id="exercise-1-using-lm" class="section level2">
 <h2>Exercise 1 (Using <code>lm</code>)</h2>
-<p>For this exercise we will use the data stored in <a href="nutrition.csv"><code>nutrition.csv</code></a>. It contains the nutritional values per serving size for a large variety of foods as calculated by the USDA. It is a cleaned version totaling 5,138 observations and is current as of September 2015.</p>
-<p>The variables in the dataset are:</p>
-<ul>
-<li><code>ID</code></li>
-<li><code>Desc</code> - Short description of food</li>
-<li><code>Water</code> - in grams</li>
-<li><code>Calories</code></li>
-<li><code>Protein</code> - in grams</li>
-<li><code>Fat</code> - in grams</li>
-<li><code>Carbs</code> - Carbohydrates, in grams</li>
-<li><code>Fiber</code> - in grams</li>
-<li><code>Sugar</code> - in grams</li>
-<li><code>Calcium</code> - in milligrams</li>
-<li><code>Potassium</code> - in milligrams</li>
-<li><code>Sodium</code> - in milligrams</li>
-<li><code>VitaminC</code> - Vitamin C, in milligrams</li>
-<li><code>Chol</code> - Cholesterol, in milligrams</li>
-<li><code>Portion</code> - Description of standard serving size used in analysis</li>
-</ul>
 <p><strong>(a)</strong> Fit the following multiple linear regression model in <code>R</code>. Use <code>Calories</code> as the response and <code>Carbs</code>, <code>Fat</code>, and <code>Protein</code> as predictors.</p>
 <p><span class="math display">\[
 Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \epsilon_i.
@@ -174,15 +155,76 @@ Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \epsilon_i.
 <li>A statistical decision at <span class="math inline">\(\alpha = 0.01\)</span></li>
 <li>A conclusion in the context of the problem</li>
 </ul>
-<p>When reporting these, you should explicitly state them in your document, not assume that a reader will find and interpret them from a large block of <code>R</code> output.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>nutrition &lt;- read.csv(&quot;nutrition.csv&quot;)
+model = lm(Calories~Carbs+Fat+Protein,data=nutrition)
+null_model = lm(Calories~1,data=nutrition)
+
+anova_res = anova(null_model,model)</code></pre>
+<p><em>The null and alternative hypotheses</em></p>
+<p><span class="math inline">\(H_0: \beta_1 = \beta_2 = \beta_3 = 0\)</span></p>
+<p><span class="math inline">\(H_1:\)</span> Atleast one of <span class="math inline">\(\beta_j != 0, j=1,2,3\)</span></p>
+<p><em>The value of the test statistic</em></p>
+<pre class="r"><code>anova_res[2,&quot;F&quot;]</code></pre>
+<pre><code>## [1] 152445</code></pre>
+<p><em>The p-value of the test</em></p>
+<pre class="r"><code>anova_res[2,&quot;Pr(&gt;F)&quot;]</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p><em>A statistical decision at α=0.01</em></p>
+<p>Since p-value is significantly less than α, we reject null hypothesis and say that the regression is significant.</p>
+<p><em>A conclusion in the context of the problem</em></p>
+<p>At least one of 3 parameters has a useful linear relationship with Calories.</p>
 <p><strong>(b)</strong> Output only the estimated regression coefficients. Interpret all <span class="math inline">\(\hat{\beta}_j\)</span> coefficients in the context of the problem.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>(coefs=summary(model)$coef[,1])</code></pre>
+<pre><code>## (Intercept)       Carbs         Fat     Protein 
+##       3.768       3.774       8.804       3.967</code></pre>
+<p><span class="math inline">\(\beta_0=3.768\)</span>, the mean number of calories in a food with no Carbs, Fat or Protein.</p>
+<p><span class="math inline">\(\beta_1=3.774\)</span>, average increase in calories per gram increase of Carbs, keeping Proteins and Fats constant.</p>
+<p><span class="math inline">\(\beta_2=8.804\)</span>, average increase in calories per gram increase of Fat, keeping Carbs and Proteins constant.</p>
+<p><span class="math inline">\(\beta_3=3.967\)</span>, average increase in calories per gram increase of Protein, keeping Carbs and Fats constant.</p>
 <p><strong>(c)</strong> Use your model to predict the amount of <code>Calories</code> in a Big Mac. According to <a href="http://nutrition.mcdonalds.com/getnutrition/nutritionfacts.pdf">McDonald’s publicized nutrition facts</a>, the Big Mac contains 47g of carbohydrates, 28g of fat, and 25g of protein.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>(mac_cal = coefs[&quot;(Intercept)&quot;]+coefs[&quot;Carbs&quot;]*47+coefs[&quot;Fat&quot;]*28+coefs[&quot;Protein&quot;]*25)</code></pre>
+<pre><code>## (Intercept) 
+##       526.8</code></pre>
 <p><strong>(d)</strong> Calculate the standard deviation, <span class="math inline">\(s_y\)</span>, for the observed values in the Calories variable. Report the value of <span class="math inline">\(s_e\)</span> from your multiple regression model. Interpret both estimates in the context of this problem.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>(s_y=sd(nutrition$Calories))</code></pre>
+<pre><code>## [1] 179.2</code></pre>
+<pre class="r"><code>(s_e=summary(model)$sigma)</code></pre>
+<pre><code>## [1] 18.89</code></pre>
+<p>The mean variation amongst the calorie values of foods from mean is about 180 cal and mean standard error in predicted values is about 19 cal.</p>
 <p><strong>(e)</strong> Report the value of <span class="math inline">\(R^2\)</span> for the model. Interpret its meaning in the context of the problem.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>summary(model)$r.squared</code></pre>
+<pre><code>## [1] 0.9889</code></pre>
+<p>we say that 98.89% of the observed variation in Calories is explained by the linear relationship with the three predictor variables, carbs content, fat content and protein content.</p>
 <p><strong>(f)</strong> Calculate a 90% confidence interval for <span class="math inline">\(\beta_2\)</span>. Give an interpretation of the interval in the context of the problem.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>confint(model, level = 0.90)[3,]</code></pre>
+<pre><code>##   5 %  95 % 
+## 8.779 8.829</code></pre>
+<p>We are 90% confident that the mean increase in calories per gram increase of fat is between 8.77893 and 8.829288.</p>
 <p><strong>(g)</strong> Calculate a 95% confidence interval for <span class="math inline">\(\beta_0\)</span>. Give an interpretation of the interval in the context of the problem.</p>
+<pre class="r"><code>confint(model, level = 0.90)[1,]</code></pre>
+<pre><code>##   5 %  95 % 
+## 2.958 4.578</code></pre>
+<p>We are 90% confident that the mean number of calories in foods without fat, carbs or proteins is between 2.9580163 and 4.578116.</p>
 <p><strong>(h)</strong> Use a 99% confidence interval to estimate the mean Calorie content of a small order of McDonald’s french fries that has 30g of carbohydrates, 11g of fat, and 2g of protein. Interpret the interval in context.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>new_food = data.frame(Carbs = 30, Fat = 11, Protein =2)
+predict(model, newdata = new_food, interval = &quot;confidence&quot;, level = 0.99)</code></pre>
+<pre><code>##     fit   lwr   upr
+## 1 221.8 220.9 222.6</code></pre>
+<p>We are 99% confident that the mean number of calories in these french fries are between 220.9 and 222.6 and the estimated value is 221.8 Calories.</p>
 <p><strong>(i)</strong> Use a 90% prediction interval to predict the Calorie content of new healthy menu item that has 11g of carbohydrates, 1.5g of fat, and 1g of protein. Interpret the interval in context.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>new_food = data.frame(Carbs = 11, Fat = 1.5, Protein =1)
+predict(model, newdata = new_food, interval = &quot;prediction&quot;, level = 0.90)</code></pre>
+<pre><code>##     fit   lwr   upr
+## 1 62.45 31.36 93.54</code></pre>
+<p>We are 90% confident that the prediction interval for number of calories in this healthy food item is between 31.36 and 93.54 .</p>
 </div>
 <div id="exercise-2-more-lm" class="section level2">
 <h2>Exercise 2 (More <code>lm</code>)</h2>
@@ -195,6 +237,22 @@ Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \epsilon_i.
 <li>A statistical decision at <span class="math inline">\(\alpha = 0.01\)</span></li>
 <li>A conclusion in the context of the problem</li>
 </ul>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>model = lm(Calories~Carbs+Sodium+Fat+Protein,data=nutrition)
+annova_res = anova(null_model,model)</code></pre>
+<p><em>The null and alternative hypotheses</em></p>
+<p><span class="math inline">\(H_0: \beta_1 = \beta_2 = \beta_3 = \beta_4 = 0\)</span></p>
+<p><span class="math inline">\(H_1:\)</span> Atleast one of <span class="math inline">\(\beta_j != 0, j=1,2,3,4\)</span></p>
+<p><em>The value of the test statistic</em></p>
+<pre class="r"><code>anova_res[2,&quot;F&quot;]</code></pre>
+<pre><code>## [1] 152445</code></pre>
+<p><em>The p-value of the test</em></p>
+<pre class="r"><code>anova_res[2,&quot;Pr(&gt;F)&quot;]</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p><em>A statistical decision at α=0.01</em></p>
+<p>Since p-value is significantly less than α, we reject null hypothesis and say that the regression is significant.</p>
+<p><em>A conclusion in the context of the problem</em></p>
+<p>Atleast one of the four factors has a useful linear relationship with Calorie value.</p>
 <p><strong>(b)</strong> For each of the predictors in part <strong>(a)</strong>, perform a <span class="math inline">\(t\)</span>-test for the significance of its regression coefficient. Report the following for each:</p>
 <ul>
 <li>The null and alternative hypotheses</li>
@@ -202,7 +260,70 @@ Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \epsilon_i.
 <li>The p-value of the test</li>
 <li>A statistical decision at <span class="math inline">\(\alpha = 0.01\)</span></li>
 </ul>
+<p><strong>Solution</strong></p>
+<p>For <span class="math inline">\(\beta_0\)</span></p>
+<p><em>The null and alternative hypotheses</em></p>
+<p><span class="math inline">\(H_0: \beta_0=0\)</span></p>
+<p><span class="math inline">\(H_1: \beta_0!=0\)</span></p>
+<p><em>The value of the test statistic</em></p>
+<pre class="r"><code>summary(model)$coef[1,3]</code></pre>
+<pre><code>## [1] 7.455</code></pre>
+<p><em>The p-value of the test</em></p>
+<pre class="r"><code>summary(model)$coef[1,4]</code></pre>
+<pre><code>## [1] 1.053e-13</code></pre>
+<p><em>A statistical decision at α=0.01</em></p>
+<p>Since alpha is bigger than p-value, we reject the null hypothesis.</p>
+<p>For <span class="math inline">\(\beta_1\)</span></p>
+<p><em>The null and alternative hypotheses</em></p>
+<p><span class="math inline">\(H_0: \beta_1=0\)</span></p>
+<p><span class="math inline">\(H_1: \beta_1!=0\)</span></p>
+<p><em>The value of the test statistic</em></p>
+<pre class="r"><code>summary(model)$coef[2,3]</code></pre>
+<pre><code>## [1] 388.7</code></pre>
+<p><em>The p-value of the test</em></p>
+<pre class="r"><code>summary(model)$coef[2,4]</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p><em>A statistical decision at α=0.01</em></p>
+<p>Since alpha is bigger than p-value, we reject the null hypothesis.</p>
+<p>For <span class="math inline">\(\beta_2\)</span></p>
+<p><em>The null and alternative hypotheses</em></p>
+<p><span class="math inline">\(H_0: \beta_2=0\)</span></p>
+<p><span class="math inline">\(H_1: \beta_2!=0\)</span></p>
+<p><em>The value of the test statistic</em></p>
+<pre class="r"><code>summary(model)$coef[3,3]</code></pre>
+<pre><code>## [1] 1.363</code></pre>
+<p><em>The p-value of the test</em></p>
+<pre class="r"><code>summary(model)$coef[3,4]</code></pre>
+<pre><code>## [1] 0.1731</code></pre>
+<p><em>A statistical decision at α=0.01</em></p>
+<p>Since alpha is less than p-value, we fail to reject the null hypothesis.</p>
+<p>For <span class="math inline">\(\beta_3\)</span></p>
+<p><em>The null and alternative hypotheses</em></p>
+<p><span class="math inline">\(H_0: \beta_3=0\)</span></p>
+<p><span class="math inline">\(H_1: \beta_3!=0\)</span></p>
+<p><em>The value of the test statistic</em></p>
+<pre class="r"><code>summary(model)$coef[4,3]</code></pre>
+<pre><code>## [1] 575.3</code></pre>
+<p><em>The p-value of the test</em></p>
+<pre class="r"><code>summary(model)$coef[4,4]</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p><em>A statistical decision at α=0.01</em></p>
+<p>Since alpha is bigger that p-value, we reject the null hypothesis.</p>
+<p>For <span class="math inline">\(\beta_4\)</span></p>
+<p><em>The null and alternative hypotheses</em></p>
+<p><span class="math inline">\(H_0: \beta_4=0\)</span></p>
+<p><span class="math inline">\(H_1: \beta_4!=0\)</span></p>
+<p><em>The value of the test statistic</em></p>
+<pre class="r"><code>summary(model)$coef[5,3]</code></pre>
+<pre><code>## [1] 150.5</code></pre>
+<p><em>The p-value of the test</em></p>
+<pre class="r"><code>summary(model)$coef[5,4]</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p><em>A statistical decision at α=0.01</em></p>
+<p>Since alpha is bigger that p-value, we reject the null hypothesis.</p>
 <p><strong>(c)</strong> Based on your results in part <strong>(b)</strong>, do you still prefer the model in part <strong>(a)</strong>, or is there instead a model with three predictors that you prefer? Briefly explain.</p>
+<p><strong>Solution</strong></p>
+<p>I would prefer a model without Sodium ( Carb + Fat + Protein ) since we failed to reject its null hypothesis; concluding that there might not be an effect of Sodium content on calorific value.</p>
 </div>
 <div id="exercise-3-comparing-models" class="section level2">
 <h2>Exercise 3 (Comparing Models)</h2>
@@ -228,14 +349,47 @@ Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \epsilon_i.
 <li>A conclusion in the context of the problem</li>
 </ul>
 <p>When reporting these, you should explicitly state them in your document, not assume that a reader will find and interpret them from a large block of <code>R</code> output.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>goalies &lt;- read.csv(&quot;goalies_cleaned.csv&quot;)
+model = lm(W~.,data=goalies)
+null_model = lm(W~1,data=goalies)</code></pre>
+<p><em>The null and alternative hypotheses</em></p>
+<p><span class="math inline">\(H_0: \beta_1 = \beta_2 = \beta_3 = ... = \beta_8 = 0\)</span></p>
+<p><span class="math inline">\(H_1:\)</span> Atleast one of <span class="math inline">\(\beta_j != 0, j=1,2,..,8\)</span></p>
+<p><em>The value of the test statistic</em></p>
+<pre class="r"><code>anova(null_model, model)[2,&quot;F&quot;]</code></pre>
+<pre><code>## [1] 3938</code></pre>
+<p><em>The p-value of the test</em></p>
+<pre class="r"><code>anova(null_model, model)[2,&quot;Pr(&gt;F)&quot;]</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p><em>A statistical decision at α=0.10</em></p>
+<p>Since p-value is significantly less than <span class="math inline">\(\alpha\)</span> we reject null hypothesis and say that the regression is significant.</p>
+<p><em>A conclusion in the context of the problem</em></p>
+<p>At least one of 8 parameters has a useful linear relationship with Wins.</p>
 <p><strong>(b)</strong> Calculate the RMSE of this full model. Report the residual standard error of this full model. What is the relationship of these two values?</p>
 <p>Recall, we have defined RMSE as,</p>
 <p><span class="math display">\[
 RMSE = \sqrt{\frac{1}{n} \sum_{i = 1}^{n}(y_i - \hat{y}_i)^2}.
 \]</span></p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>(RMSE=sqrt(sum((model$residuals) ^ 2) / (nrow(goalies)-length(coef(model)))))</code></pre>
+<pre><code>## [1] 12.52</code></pre>
+<pre class="r"><code>(summary(model)$sigma)</code></pre>
+<pre><code>## [1] 12.52</code></pre>
+<p>When calculated for proper degrees of freedom, both are equal.</p>
 <p><strong>(c)</strong> Fit a model with Wins as the response and with Goals Against, Goals Against Average, Saves, and Save Percentage as the predictors. Calculate the RMSE of this model.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>model_c = lm(W~GAA+SV_PCT+GA+SV,data=goalies)
+(RMSE=sqrt(sum((model_c$residuals) ^ 2) / (nrow(goalies)-length(coef(model_c)))))</code></pre>
+<pre><code>## [1] 25.26</code></pre>
 <p><strong>(d)</strong> Fit a model with Wins as the response and with Goals Against Average and Save Percentage as the predictors. Calculate the RMSE of this model.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>model_d = lm(W~GAA+SV_PCT,data=goalies)
+(RMSE=sqrt(sum((model_d$residuals) ^ 2) / (nrow(goalies)-length(coef(model_d)))))</code></pre>
+<pre><code>## [1] 103.2</code></pre>
 <p><strong>(e)</strong> Based on the previous three models, which model is most helpful for predicting wins? Briefly explain.</p>
+<p><strong>Solution</strong></p>
+<p>Most helpful model is one with all the predictor as it has least RMSE.</p>
 <p><strong>(f)</strong> Conduct an ANOVA <span class="math inline">\(F\)</span>-test comparing the models in parts <strong>(c)</strong> and <strong>(d)</strong>. Report the following:</p>
 <ul>
 <li>The null and alternative hypotheses</li>
@@ -244,16 +398,75 @@ RMSE = \sqrt{\frac{1}{n} \sum_{i = 1}^{n}(y_i - \hat{y}_i)^2}.
 <li>A statistical decision at <span class="math inline">\(\alpha = 0.10\)</span></li>
 <li>A conclusion in the context of the problem</li>
 </ul>
-<p>When reporting these, you should explicitly state them in your document, not assume that a reader will find and interpret them from a large block of <code>R</code> output.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>anova(model_d,model_c)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: W ~ GAA + SV_PCT
+## Model 2: W ~ GAA + SV_PCT + GA + SV
+##   Res.Df     RSS Df Sum of Sq    F Pr(&gt;F)    
+## 1    459 4885261                             
+## 2    457  291584  2   4593677 3600 &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+<p><em>The null and alternative hypotheses</em></p>
+<p><span class="math inline">\(H_0: \beta_{GA} = \beta_{SV} = 0\)</span></p>
+<p><span class="math inline">\(H_1:\)</span> Atleast one of <span class="math inline">\(\beta_{GA} or \beta_{SV} != 0\)</span></p>
+<p><em>The value of the test statistic</em></p>
+<pre class="r"><code>anova(model_d,model_c)[2,&quot;F&quot;]</code></pre>
+<pre><code>## [1] 3600</code></pre>
+<p><em>The p-value of the test</em></p>
+<pre class="r"><code>anova(model_d,model_c)[2,&quot;Pr(&gt;F)&quot;]</code></pre>
+<pre><code>## [1] 1.939e-280</code></pre>
+<p><em>A statistical decision at α=0.10</em></p>
+<p>Since p-value is less than <span class="math inline">\(\alpha\)</span> we reject null hypothesis. With SV_PCT, GAA already in model; SV and GAA are still significant.</p>
+<p><em>A conclusion in the context of the problem</em></p>
+<p>Saves and Goals Against are significant contributors towards Wins even with Goals Against Average and Save Percentage already known.</p>
 </div>
 <div id="exercise-4-regression-without-lm" class="section level2">
 <h2>Exercise 4 (Regression without <code>lm</code>)</h2>
 <p>For this exercise use the <code>prostate</code> dataset from the <code>faraway</code> package. Use <code>?prosate</code> to learn about the dataset. The goal of this exercise is to fit a model with <code>lpsa</code> as the response and the remaining variables as predictors.</p>
 <p><strong>(a)</strong> Obtain the estimated regression coefficients <strong>without</strong> the use of <code>lm()</code> or any other built-in functions for regression. That is, you should use only matrix operations. Store the results in a vector <code>beta_hat_no_lm</code>. To ensure this is a vector, you may need to use <code>as.vector()</code>. Return this vector as well as the results of <code>sum(beta_hat_no_lm)</code>.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>library(faraway)
+n = nrow(prostate)
+X = as.matrix(cbind(rep(1, n), prostate[,1-ncol(prostate)-1]))
+y = prostate$lpsa
+(beta_hat_no_lm = as.vector(solve(t(X) %*% X) %*% t(X) %*% y))</code></pre>
+<pre><code>## [1]  0.669337  0.587022  0.454467 -0.019637  0.107054  0.766157 -0.105474
+## [8]  0.045142  0.004525</code></pre>
+<pre class="r"><code>(sum(beta_hat_no_lm))</code></pre>
+<pre><code>## [1] 2.509</code></pre>
 <p><strong>(b)</strong> Obtain the estimated regression coefficients <strong>with</strong> the use of <code>lm()</code>. Store the results in a vector <code>beta_hat_lm</code>. To ensure this is a vector, you may need to use <code>as.vector()</code>. Return this vector as well as the results of <code>sum(beta_hat_lm)</code>.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>model = lm(lpsa~.,data=prostate)
+(beta_hat_lm = as.vector(coef(model)))</code></pre>
+<pre><code>## [1]  0.669337  0.587022  0.454467 -0.019637  0.107054  0.766157 -0.105474
+## [8]  0.045142  0.004525</code></pre>
+<pre class="r"><code>(sum(beta_hat_lm))</code></pre>
+<pre><code>## [1] 2.509</code></pre>
 <p><strong>(c)</strong> Use the <code>all.equal()</code> function to verify that the results are the same. You may need to remove the names of one of the vectors. The <code>as.vector()</code> function will do this as a side effect, or you can directly use <code>unname()</code>.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>all.equal(beta_hat_lm,beta_hat_no_lm)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
 <p><strong>(d)</strong> Calculate <span class="math inline">\(s_e\)</span> without the use of <code>lm()</code>. That is, continue with your results from <strong>(a)</strong> and perform additional matrix operations to obtain the result. Output this result. Also, verify that this result is the same as the result obtained from <code>lm()</code>.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>p = length(coef(model))
+y_hat = X %*% solve(t(X) %*% X) %*% t(X) %*% y
+e     = y - y_hat
+(s_e = sqrt(t(e) %*% e / (n - p)))</code></pre>
+<pre><code>##        [,1]
+## [1,] 0.7084</code></pre>
+<pre class="r"><code>all.equal(summary(model)$sigma,as.vector(s_e))</code></pre>
+<pre><code>## [1] TRUE</code></pre>
 <p><strong>(e)</strong> Calculate <span class="math inline">\(R^2\)</span> without the use of <code>lm()</code>. That is, continue with your results from <strong>(a)</strong> and <strong>(d)</strong> and perform additional operations to obtain the result. Output this result. Also, verify that this result is the same as the result obtained from <code>lm()</code>.</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>SST   = sum((y - mean(y)) ^ 2)
+SSReg = sum((y_hat - mean(y)) ^ 2)
+(R2 = SSReg / SST)</code></pre>
+<pre><code>## [1] 0.6548</code></pre>
+<pre class="r"><code>all.equal(R2,summary(model)$r.squared)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
 </div>
 </div>
 
