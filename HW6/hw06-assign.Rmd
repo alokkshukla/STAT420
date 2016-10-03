@@ -1,0 +1,210 @@
+---
+title: 'STAT 420: Homework 06'
+author: "Fall 2016, Dalpiaz"
+date: 'Due: Monday, October 3 by 11:59 PM CDT'
+output:
+  html_document:
+    theme: readable
+    toc: yes
+---
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+options(scipen = 1, digits = 4, width = 80)
+```
+
+> "Statisticians, like artists, have the bad habit of falling in love with their models."
+>
+> --- **George Box**
+
+# Directions
+
+Students are encouraged to work together on homework using the discussion boards. However, sharing, copying, or providing any part of a homework solution or code is an infraction of the University's rules on academic integrity. Any violation will be punished as severely as possible.
+
+- Your assignment must be submitted through Coursera. You are required to upload one `.zip` file, named `hw06_yourNetID.zip`, which contains:
+    - Your RMarkdown file which should be saved as `hw06_yourNetID.Rmd`. For example `hw06_dalpiaz2.Rmd`.
+    - The result of knitting your RMarkdown file as `hw06_yourNetID.html`. For example `hw06_dalpiaz2.html`.
+    - Any outside data provided as a `.csv` file used for the homework.
+    - This will roughly match the `.zip` provided.
+- Your resulting `.html` file will be considered a "report" which is the material that will determine the majority of your grade. Be sure to visibly include all `R` code and output that is relevant to answering the exercises. (You do not need to include irrelevant code you tried that resulted in error or did not answer the question correctly.)
+- You are granted an unlimited number of submissions, but only the last submission *before* the deadline will be viewed and graded.
+- If you use [this `.Rmd` file as a template](hw01-assign.Rmd), be sure to remove the quotation, directions section, and consider removing `eval = FALSE` from any code chunks provided (if you would like to run that code as part of your assignment).
+- Your `.Rmd` file should be written such that, when stored in a folder with any data you are asked to import, it will knit properly without modification. If your `.zip` file is organized properly, this should not be an issue.
+- Unless otherwise stated, you may use `R` for each of the exercises.
+- Be sure to read each exercise carefully!
+- Include your name and NetID in the final document, not only in your filenames.
+
+# Assignment
+
+## Exercise 1 (Regression for Explanation)
+
+For this exercise use the `prostate` dataset from the `faraway` package. Use `?prosate` to learn about the dataset. The goal of this exercise is to find a model that is useful for **explaining** the response `lpsa`.
+
+Fit a total of five models.
+
+- One must use all possible predictors.
+- One must use only `lcavol` as a predictor.
+- The remaining three you must choose. The models you choose must be picked in a way such that for any two of the five models, one is nested inside the other.
+
+Argue that one of the five models is the best among them for explaining the response. Use appropriate methods and justify your answer.
+
+## Exercise 2 (Regression for Prediction)
+
+For this exercise use the `Boston` dataset from the `MASS` package. Use `?Boston` to learn about the dataset. The goal of this exercise is to find a model that is useful for **predicting** the response `medv`.
+
+When evaluating a model for prediction, we often look at RMSE. However, if we both fit the model with all the data, as well as evaluate RMSE using all the data, we're essentially cheating. We'd like to use RMSE as a measure of how well the model will predict on *unseen* data. If you haven't already noticed, the way we had been using RMSE resulted in RMSE decreasing as models became larger.
+
+To correct for this, we will only use a portion of the data to fit the model, then we will use leftover data to evaluate the model. We will call these datasets **train** (for fitting) and **test** (for evaluating). The definition of RMSE will stay the same
+
+\[
+\text{RMSE}(\text{model, data}) = \sqrt{\frac{1}{n} \sum_{i = 1}^{n}(y_i - \hat{y}_i)^2}
+\]
+
+where
+
+- $y_i$ are the actual values of the response for the given data
+- $\hat{y}_i$ are the predicted values using the fitted model and the predictors from the data
+
+However we will now evaluate it on both the **train** set and the **test** set separately. So each model you fit will have a **train** RMSE and a **test** RMSE. When calculating **test** RMSE, the predicted values will be found by predicting the response using the **test** data with the model fit using the **train** data. *__Test__ data should never be used to fit a model.*
+
+- Train RMSE: Model fit with train data. Evaluate on **train** data.
+- Test RMSE: Model fit with train data. Evaluate on **test** data.
+
+Set a seed of `42` and then split the `Boston` data into two datasets, one called `train_data` and one called `test_data`. The `train_data` dataframe should contain 400 randomly chosen observations. `test_data` will contain the remaining observations. Hint: consider the following code:
+
+```{r}
+library(MASS)
+set.seed(42)
+train_index = sample(1:nrow(Boston), 400)
+```
+
+Fit a total of five models using the training data.
+
+- One must use all possible predictors.
+- One must use only `crim` as a predictor.
+- The remaining three you can pick to be anything you like. One of these should be the best of the five for predicting the response.
+
+For each model report the **train** and **test** RMSE. Argue that one of your models is the best for predicting the response.
+
+## Exercise 3 (Simulating Multiple Regression)
+
+For this exercise we will simulate data from the following model:
+
+\[
+Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4} + \epsilon_i
+\]
+
+Where $\epsilon_i \sim N(0, \sigma^2).$ Also, the parameters are known to be:
+
+- $\beta_0 = 2$
+- $\beta_1 = 3$
+- $\beta_2 = 4$
+- $\beta_3 = 0$
+- $\beta_4 = 1$
+- $\sigma^2 = 16$
+
+We will use samples of size `n = 25`.
+
+We will verify the distribution of $\hat{\beta}_1$ as well as investigate some hypothesis tests.
+
+**(a)** We will first generate the $X$ matrix and data frame that will be used throughout the exercise. Create the following 9 variables:
+
+- `x0`: a vector of length `n` that contains all `1`
+
+```{r}
+n=25
+```
+
+```{r}
+x0=rep(1,n)
+```
+
+
+
+- `x1`: a vector of length `n` that is randomly drawn from a uniform distribution between `0` and `10`
+
+```{r}
+x1=runif(n, min = 0, max = 10)
+```
+
+
+- `x2`: a vector of length `n` that is randomly drawn from a uniform distribution between `0` and `10`
+
+```{r}
+x2=runif(n, min = 0, max = 10)
+```
+- `x3`: a vector of length `n` that is randomly drawn from a uniform distribution between `0` and `10`
+
+```{r}
+x3=runif(n, min = 0, max = 10)
+```
+
+- `x4`: a vector of length `n` that is randomly drawn from a uniform distribution between `0` and `10`
+
+```{r}
+x4=runif(n, min = 0, max = 10)
+```
+- `X`: a matrix that contains `x0`, `x1`, `x2`, `x3`, `x4` as its columns
+
+```{r}
+x = cbind(x0,x1,x2,x3,x4)
+```
+
+- `C`: the $C$ matrix that is defined as $(X^\top X)^{-1}$
+
+```{r}
+C=solve(t(x) %*% x)
+```
+
+- `y`: a vector of length `n` that contains all `0`
+
+```{r}
+y=rep(0,n)
+```
+
+- `ex_4_data`: a data frame that stores `y` and the **four** predictor variables. `y` is currently a placeholder which we will update during the simulation
+
+```{r}
+ex_4_data = cbind(y,x1,x2,x4,x4)
+
+```
+
+
+
+Report the diagonal of `C` as well as the 10th row of `ex_4_data`. For this exercise we will use the seed `42`.
+
+```{r}
+set.seed(42)
+n = 25
+```
+
+**Solution**
+
+```{r}
+diag(C)
+ex_4_data[10,]
+
+```
+
+**(b)** Create three vectors of length `1500` that will store results from the simulation in part **(c)**. Call them `beta_hat_1`, `beta_2_pval`, and `beta_3_pval`.
+
+```{r}
+beta_hat_1=rep(0,1500)
+beta_2_pval=rep(0,1500)
+beta_3_pval=rep(0,1500)
+```
+
+
+**(c)** Simulate 1500 samples of size `n = 25` from the model above. Each time update the `y` value of `ex_4_data`. Then use `lm()` to fit a multiple regression model. Each time store:
+
+- The value of $\hat{\beta}_1$ in `beta_hat_1`
+- The p-value for the two-sided test of $\beta_2 = 0$ in `beta_2_pval`
+- The p-value for the two-sided test of $\beta_3 = 0$ in `beta_3_pval`
+
+**(d)** Based on the known values of $X$, what is the true distribution of $\hat{\beta}_1$?
+
+**(e)** Calculate the mean and variance of `beta_hat_1`. Are they close to what we would expect? Plot a histogram of `beta_hat_1`. Add a curve for the true distribution of $\hat{\beta}_1$. Does the curve seem to match the histogram?
+
+**(f)** What proportion of the p-values stored in `beta_3_pval` are less than 0.05? Is this what you would expect?
+
+**(g)** What proportion of the p-values stored in `beta_2_pval` are less than 0.05? Is this what you would expect?
+
