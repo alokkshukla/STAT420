@@ -3,10 +3,10 @@ title: "STAT420 Homework 4"
 author: "Alok K. Shukla"
 date: "9/18/2016"
 output:
+  pdf_document:
+    toc: yes
   html_document:
     theme: readable
-    toc: yes
-  pdf_document:
     toc: yes
 ---
 
@@ -696,12 +696,13 @@ count
 
 ```{r}
 count = 0;
+beta_00 = 0
 for (i in 1:num_samples){
-  if (0<=upper_90[i] & 0>=lower_90[i]){
+  if (beta_00>upper_90[i] | beta_00<lower_90[i]){
     count = count+1;
   }
 }
-1-(count/num_samples)
+(count/num_samples)
 
 ```
 
@@ -746,12 +747,13 @@ count
 
 ```{r}
 count = 0;
+beta_00 = 0
 for (i in 1:num_samples)
-  if (0<=upper_99[i] & 0>=lower_99[i]){
+  if (beta_00>upper_99[i] | beta_00<lower_99[i]){
     count = count+1;
   }
 
-1-(count/num_samples)
+(count/num_samples)
 ```
 
 

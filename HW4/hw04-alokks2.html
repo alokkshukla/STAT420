@@ -577,12 +577,13 @@ count</code></pre>
 <p><strong>(d)</strong> Based on these intervals, what proportion of the simulations would reject the test <span class="math inline">\(H_0: \beta_0 = 0\)</span> vs <span class="math inline">\(H_1: \beta_0 \neq 0\)</span> at <span class="math inline">\(\alpha = 0.10\)</span>?</p>
 <p><strong>Solution</strong></p>
 <pre class="r"><code>count = 0;
+beta_00 = 0
 for (i in 1:num_samples){
-  if (0&lt;=upper_90[i] &amp; 0&gt;=lower_90[i]){
+  if (beta_00&gt;upper_90[i] | beta_00&lt;lower_90[i]){
     count = count+1;
   }
 }
-1-(count/num_samples)</code></pre>
+(count/num_samples)</code></pre>
 <pre><code>## [1] 0.2995</code></pre>
 <p><strong>(e)</strong> For each of the <span class="math inline">\(\hat{\beta}_0\)</span> that you simulated calculate a 99% confidence interval. Store the lower limits in a vector <code>lower_99</code> and the upper limits in a vector <code>upper_99</code>.</p>
 <p><strong>Solution</strong></p>
@@ -609,12 +610,13 @@ count</code></pre>
 <p><strong>(g)</strong> Based on these intervals, what proportion of the simulations would reject the test <span class="math inline">\(H_0: \beta_0 = 0\)</span> vs <span class="math inline">\(H_1: \beta_0 \neq 0\)</span> at <span class="math inline">\(\alpha = 0.01\)</span>?</p>
 <p><strong>Solution</strong></p>
 <pre class="r"><code>count = 0;
+beta_00 = 0
 for (i in 1:num_samples)
-  if (0&lt;=upper_99[i] &amp; 0&gt;=lower_99[i]){
+  if (beta_00&gt;upper_99[i] | beta_00&lt;lower_99[i]){
     count = count+1;
   }
 
-1-(count/num_samples)</code></pre>
+(count/num_samples)</code></pre>
 <pre><code>## [1] 0.066</code></pre>
 </div>
 </div>
