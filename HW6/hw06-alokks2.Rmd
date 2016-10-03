@@ -26,6 +26,43 @@ Fit a total of five models.
 
 Argue that one of the five models is the best among them for explaining the response. Use appropriate methods and justify your answer.
 
+**Solution**
+```{r,message=FALSE}
+library(faraway)
+```
+
+
+- One must use all possible predictors.
+
+```{r}
+model_all = lm(lpsa~.,data=prostate)
+sqrt(mean(model_all$residuals^2))
+```
+
+- One must use only `lcavol` as a predictor.
+
+```{r}
+model_lcavol = lm(lpsa~lcavol,data=prostate)
+sqrt(mean(model_lcavol$residuals^2))
+```
+
+- Rest 3
+
+```{r}
+model3=lm(lpsa~lcavol+lweight+lbph,data=prostate)
+sqrt(mean(model3$residuals^2))
+
+model4=lm(lpsa~lcavol+lweight+lbph+age+lcp+gleason+pgg45,data=prostate)
+sqrt(mean(model4$residuals^2))
+
+model5=lm(lpsa~lcavol+lweight+lbph+lcp+pgg45,data=prostate)
+sqrt(mean(model5$residuals^2))
+
+```
+
+Based on their RMSEs, the full model with all of the predictors has the lowest, so it is making the best predictions.
+
+
 ## Exercise 2 (Regression for Prediction)
 
 For this exercise use the `Boston` dataset from the `MASS` package. Use `?Boston` to learn about the dataset. The goal of this exercise is to find a model that is useful for **predicting** the response `medv`.
@@ -54,6 +91,8 @@ Set a seed of `42` and then split the `Boston` data into two datasets, one calle
 library(MASS)
 set.seed(42)
 train_index = sample(1:nrow(Boston), 400)
+train = Boston[train_index,]
+test = Boston[-train_index,]
 ```
 
 Fit a total of five models using the training data.
@@ -63,6 +102,47 @@ Fit a total of five models using the training data.
 - The remaining three you can pick to be anything you like. One of these should be the best of the five for predicting the response.
 
 For each model report the **train** and **test** RMSE. Argue that one of your models is the best for predicting the response.
+
+**Solution**
+
+- One must use all possible predictors.
+
+```{r}
+model_all=lm(medv~.,data=train)
+(trainRMSE = sqrt(mean(model_all$residuals^2)))
+test_resid = abs(predict(model_all,newdata = test)-test$medv)
+(testRMSE = sqrt(mean(test_resid^2)))
+```
+
+- One must use only `crim` as a predictor.
+
+```{r}
+model_crim=lm(medv~crim,data=train)
+(trainRMSE = sqrt(mean(model_crim$residuals^2)))
+test_resid = abs(predict(model_crim,newdata = test)-test$medv)
+(testRMSE = sqrt(mean(test_resid^2)))
+```
+
+- The remaining 3
+
+```{r}
+model3=lm(medv~crim+zn+indus+nox+rm+age+dis+rad+tax+ptratio+black+lstat,data=train)
+(trainRMSE = sqrt(mean(model3$residuals^2)))
+test_resid = abs(predict(model3,newdata = test)-test$medv)
+(testRMSE = sqrt(mean(test_resid^2)))
+
+model4=lm(medv~crim+zn+indus+nox+rm+age+dis+tax+ptratio+black+lstat,data=train)
+(trainRMSE = sqrt(mean(model4$residuals^2)))
+test_resid = abs(predict(model4,newdata = test)-test$medv)
+(testRMSE = sqrt(mean(test_resid^2)))
+
+model5=lm(medv~crim+indus+nox+rm+age+dis+tax+ptratio+black+lstat,data=train)
+(trainRMSE = sqrt(mean(model5$residuals^2)))
+test_resid = abs(predict(model5,newdata = test)-test$medv)
+(testRMSE = sqrt(mean(test_resid^2)))
+```
+
+Based on their RMSEs (test and train), the full model with all of the predictors has the lowest, so it is making the best predictions.
 
 ## Exercise 3 (Simulating Multiple Regression)
 
@@ -94,7 +174,7 @@ n=25
 ```
 
 ```{r}
-x0=rep(1,n)
+(x0=rep(1,n))
 ```
 
 
@@ -102,48 +182,48 @@ x0=rep(1,n)
 - `x1`: a vector of length `n` that is randomly drawn from a uniform distribution between `0` and `10`
 
 ```{r}
-x1=runif(n, min = 0, max = 10)
+(x1=runif(n, min = 0, max = 10))
 ```
 
 
 - `x2`: a vector of length `n` that is randomly drawn from a uniform distribution between `0` and `10`
 
 ```{r}
-x2=runif(n, min = 0, max = 10)
+(x2=runif(n, min = 0, max = 10))
 ```
 - `x3`: a vector of length `n` that is randomly drawn from a uniform distribution between `0` and `10`
 
 ```{r}
-x3=runif(n, min = 0, max = 10)
+(x3=runif(n, min = 0, max = 10))
 ```
 
 - `x4`: a vector of length `n` that is randomly drawn from a uniform distribution between `0` and `10`
 
 ```{r}
-x4=runif(n, min = 0, max = 10)
+(x4=runif(n, min = 0, max = 10))
 ```
 - `X`: a matrix that contains `x0`, `x1`, `x2`, `x3`, `x4` as its columns
 
 ```{r}
-x = cbind(x0,x1,x2,x3,x4)
+(x = cbind(x0,x1,x2,x3,x4))
 ```
 
 - `C`: the $C$ matrix that is defined as $(X^\top X)^{-1}$
 
 ```{r}
-C=solve(t(x) %*% x)
+(C=solve(t(x) %*% x))
 ```
 
 - `y`: a vector of length `n` that contains all `0`
 
 ```{r}
-y=rep(0,n)
+(y=rep(0,n))
 ```
 
 - `ex_4_data`: a data frame that stores `y` and the **four** predictor variables. `y` is currently a placeholder which we will update during the simulation
 
 ```{r}
-ex_4_data = data.frame(cbind(y,x1,x2,x4,x4))
+(ex_4_data = data.frame(cbind(y,x1,x2,x3,x4)))
 
 ```
 
@@ -193,14 +273,14 @@ beta_hats = matrix(0, num_sim, 5)
 for (i in 1:num_sim) {
   eps      = rnorm(n, mean = 0, sd = sigma)
 
-  ex_4_data$y=beta_0 + beta_1 * x1 + beta_2 * x2 + + beta_3 * x3 + beta_4 * x4+eps
+  ex_4_data$y=true_line+eps
  
   beta_hats[i, ]  = coef(lm(y ~ x1+x2+x3+x4, data = ex_4_data))
   beta_hat_1[i] = beta_hats[i, 2]
   beta_2_pval[i] = t.test(beta_hats[,3], mu = 0,alternative = c("two.sided"))$p.value
  beta_3_pval[i] = t.test(beta_hats[,4], mu = 0,alternative = c("two.sided"))$p.value
 }
-(beta_3_pval)
+
 
  
 ```
@@ -208,8 +288,11 @@ for (i in 1:num_sim) {
 
 **(d)** Based on the known values of $X$, what is the true distribution of $\hat{\beta}_1$?
 
-```{r}
-(dnorm(x, mean = beta_1, sd = sqrt(var(beta_hat_1))))
+```{r,message=FALSE}
+dist=dnorm(x, mean = beta_1, sd = sqrt(var(beta_hat_1)))
+
+library(fitdistrplus)
+(f1 <- fitdist(beta_hat_1,"norm"))
 ```
 
 
@@ -237,21 +320,22 @@ curve(dnorm(x, mean = beta_1, sd = sqrt(sigma ^ 2 * C[1 + 1, 1 + 1])),
       col = "darkorange", add = TRUE, lwd = 3)
 
 ```
- Curve does seem to match histogram.
+ 
+Curve does seem to match histogram.
 
 
 **(f)** What proportion of the p-values stored in `beta_3_pval` are less than 0.05? Is this what you would expect?
 
 ```{r}
-sum(beta_3_pval<0.05)/15
+sum(beta_3_pval<0.05)/1500
 
 ```
 
-
+This is expected because the mean of `beta_2` (0) is not significantly differnt from whats assumed in null hypothesis (0); thus none of p-values are less than `alpha` (0.05).
 
 **(g)** What proportion of the p-values stored in `beta_2_pval` are less than 0.05? Is this what you would expect?
 
 ```{r}
-sum(beta_2_pval<0.05)/15
+sum(beta_2_pval<0.05)/1500
 ```
-
+This is expected because the mean of `beta_2` (4) is significantly differnt from whats assumed in null hypothesis (0); thus almost all of p-values are less than `alpha` (0.05).
