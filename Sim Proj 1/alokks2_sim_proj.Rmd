@@ -1,0 +1,434 @@
+---
+title: 'STAT 420: Simulation Project'
+author: "Alok K. Shukla"
+date: "10/16/2016"
+output:
+  html_document:
+    theme: readable
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is the first Simulation Project Report for STAT420. It consists of three Simulation Studies; on Distributions, MSE of Estimators and RMSE for Prediction. The Data used in studies is provided externally in two csv files.
+
+## Simulation Study 1, Distributions
+
+### Introduction
+
+In this simulation study we will investigate the distribution of three estimates, $\hat{\beta}_2$, $s_e$ and $\hat{E}[Y \mid x_1 = -4, x_2 = 2.5, x_3 = 0]$ for the model \newline
+
+\begin{equation}
+Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \epsilon_i
+\end{equation}
+
+\newline
+
+where $\epsilon_i \sim N(0, \sigma^2)$ and 
+
+
+* $\beta_0 = 5$
+* $\beta_1 = 1$
+* $\beta_2 = 1$
+* $\beta_3 = 1$
+
+
+With a sample size $n=10$ and three levels of noise, $\sigma \in (1, 5, 10)$
+
+Data is available in `study_1.csv` .
+We will be simulating 2500 times.
+
+
+### Methods
+
+#### Read Data
+
+To populate the `study_1` data of predixtors.
+
+```{r, solution = TRUE}
+study_1 <- read.csv("study_1.csv")
+```
+
+##### Initialization
+
+Fixed parameters.
+
+```{r, solution = TRUE}
+beta_0 = 5
+beta_1 = 1
+beta_2 = 1
+beta_3 = 1
+n = 10
+num_sims = 2500
+x0 = rep(1,n)
+x1 = study_1$x1
+x2 = study_1$x2
+x3 = study_1$x3
+sigma = c(1,5,10)
+beta_hat_2  = rep(0, num_sims)
+s_e = rep(0, num_sims)
+e_y = rep(0, num_sims)
+x1_fix = -4
+x2_fix = 2.5
+x3_fix = 3
+```
+
+#### Simulation function
+
+A method for simulation so that it could be repeated for levels of noise.
+
+
+```{r, solution = TRUE}
+simulation1 = function(sigma){
+  for(i in 1:num_sims) {
+  eps         = rnorm(n, mean = 0 , sd = sigma)
+  study_1$y   = beta_0 + beta_1 * x1 + beta_2 * x2 + beta_3 * x3 + eps
+  fit           = lm(y ~ ., data = study_1)
+  p = length(coef(fit))
+  beta_hat_2[i]  = coef(fit)[3]
+  y_hat = predict(fit,data=study_1)
+  s_e[i] = sqrt(sum((study_1$y - y_hat) ^ 2) / (n - p))
+  e_y[i] = coef(fit)[1]+coef(fit)[2]*x1_fix+coef(fit)[3]*x2_fix+coef(fit)[4]*x3_fix
+  
+  }
+  cbind(beta_hat_2,s_e,e_y)
+}
+
+
+
+```
+
+
+
+
+
+
+
+### Results
+
+```{r,solutions="TRUE"}
+par(mfrow = c(3, 3))
+for (i in 1:3){
+  results = simulation1(sigma[i])
+  hist(results[,1], prob = TRUE, breaks = 20, 
+     xlab = expression(hat(beta)[1]), main = paste("Sigma = ",toString(sigma[i])), border = "dodgerblue")
+  hist(results[,2], prob = TRUE, breaks = 20, 
+     xlab = expression(s[e]), main = paste("Sigma = ",toString(sigma[i])), border = "orange")
+  hist(results[,3], prob = TRUE, breaks = 20, 
+     xlab = expression(hat(E[Y])), main = paste("Sigma = ",toString(sigma[i])), border = "green")
+  
+}
+```
+
+### Discussion
+
+
+## Simulation Study 2, MSE of Estimators
+
+### Introduction
+
+In this study we simulate $MSE$, $Bias$ and $Var$ of one of the estimates, $\hat{\beta_1}$ using different sample sizes.
+
+
+The MSE of an estimator can be decomposed into the bias and variance of the estimator.
+
+\begin{equation}
+MSE(\hat{\beta}) = [Bias(\hat{\beta})] ^ 2 + Var[\hat{\beta}]
+\end{equation}
+
+The bias of the estimator is given by
+
+\begin{equation}
+Bias(\hat{\beta}) = E[\hat{\beta}] - \beta
+\end{equation}
+
+We will simulate from the model
+
+\begin{equation}
+Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \epsilon_i
+\end{equation}
+
+where $\epsilon_i \sim N(0, \sigma^2)$ and 
+
+* $\beta_0 = 5$
+* $\beta_1 = 2$
+* $\beta_2 = 4$
+* $\sigma = 4$
+
+We will consider a sequence of increasing sample sizes.
+
+* $n \in (10, 20, 30, 40, 50, 60, 70 , 80, 90, 100)$
+
+We will be simulating the data 500 times for each sample size for each of following models.
+
+* `y~x1`
+* `y~x1+x2`
+* `y~x1+x2+x3`
+
+
+### Methods
+
+#### Initialization
+
+Fixed parameters.
+
+```{r, solution = TRUE}
+beta_0 = 5
+beta_1 = 2
+beta_2 = 4
+sigma = 4
+n = c(10, 20, 30, 40, 50, 60, 70 , 80, 90, 100)
+num_sims = 500
+beta_hat_1  = rep(0, num_sims)
+temp_500 = rep(0, num_sims)
+temp_3x500 = data.frame(temp_500,temp_500,temp_500)
+beta_hat_1 = temp_3x500
+bias_beta_hat_1 = c(0,0,0)
+var_beta_hat_1 = c(0,0,0)
+mse_beta_hat_1 = c(0,0,0)
+```
+
+#### Generate Simulation Data
+
+This will create `study_2` data for simulation for different sample sizes.
+
+```{r}
+gen_sim_data = function(n = 100) {
+  
+  x1 = runif(n = n)
+  x2 = runif(n = n)
+  x3 = runif(n = n)
+  y = beta_0 + beta_1 * x1 + beta_2 * x2 + rnorm(n = n, mean = 0, sd = sigma)
+  
+  data.frame(x1, x2, x3, y)
+  
+}
+```
+
+
+
+#### Simulation function
+
+A method for simulation so that it could be repeated for levels of noise.
+
+
+```{r, solution = TRUE}
+simulation2 = function(n){
+  for(i in 1:num_sims) {
+  study_2 = gen_sim_data(n)
+  
+  fit1           = lm(y ~ x1, data = study_2)
+  fit2           = lm(y ~ x1+x2, data = study_2)
+  fit3           = lm(y ~ x1+x2+x3, data = study_2)
+ 
+ 
+  beta_hat_1[i,1] = coef(fit1)[2]
+  beta_hat_1[i,2] = coef(fit2)[2]
+  beta_hat_1[i,3] = coef(fit3)[2]
+  }
+  
+  for(i in 1:3){
+    bias_beta_hat_1[i] = mean(beta_hat_1[,i])-beta_1
+    var_beta_hat_1[i] = var(beta_hat_1[,i])
+    mse_beta_hat_1[i] = (bias_beta_hat_1[i]^2)+var_beta_hat_1[i]
+  }
+  
+  cbind(mse_beta_hat_1, bias_beta_hat_1, var_beta_hat_1)
+}
+
+
+#simulation2(100)
+
+```
+### Results
+```{r,solution="TRUE"}
+par(mfrow=c(3,3))
+mse_data = data.frame(matrix(ncol = 3, nrow = 10))
+bias_data = data.frame(matrix(ncol = 3, nrow = 10))
+var_data = data.frame(matrix(ncol = 3, nrow = 10))
+
+for( i in 1:length(n)){
+  results = simulation2(n[i])
+  mse_data[i,1] = results[1,1]
+  mse_data[i,2] = results[2,1]
+  mse_data[i,3] = results[3,1]
+  
+  bias_data[i,1] = results[1,2]
+  bias_data[i,2] = results[2,2]
+  bias_data[i,3] = results[3,2]
+  
+  var_data[i,1] = results[1,3]
+  var_data[i,2] = results[2,3]
+  var_data[i,3] = results[3,3]
+}
+
+for (i in 1:3){
+  plot(n,mse_data[,i],type="n", main=paste("Model ",toString(i)), xlab = "Sample Size", ylab = "MSE",xaxt="n")
+  axis(1, at = n, las=2)
+  
+  lines(n,mse_data[,i],col="green",lwd=2.5)
+  plot(n,bias_data[,i],type="n", main=paste("Model ",toString(i)), xlab = "Sample Size", ylab = "Bias",xaxt="n")
+  
+  axis(1, at = n, las=2)
+  lines(n,bias_data[,i],col="orange",lwd=2.5)
+  plot(n,var_data[,i],type="n", main=paste("Model ",toString(i)), xlab = "Sample Size", ylab = "Variance",xaxt="n")
+  
+  axis(1, at = n, las=2)
+  lines(n,var_data[,i],col="blue",lwd=2.5)
+  }
+```
+
+### Discussion
+
+
+## Simulation Study 3, RMSE for Prediction
+
+### Introduction
+
+In this Simulation Study we will how effective is using RMSE as a parameter for selecting the best model. We will be simulating following model
+\begin{equation}
+Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4} + \epsilon_i
+\end{equation}
+
+where $\epsilon_i \sim N(0, \sigma^2)$ and 
+
+* $\beta_0 = 0$
+* $\beta_1 = 4$
+* $\beta_2 = 3$
+* $\beta_3 = 2$
+* $\sigma = 1$
+
+We will consider a sample size of 400, and three possible levels of noise. That is three values of $\sigma$.
+
+* $n=400$
+* $\sigma \in (1, 5, 10)$
+
+Data is available in `study_3.csv`. Each time we simulate data, there is a random split for training and test data (200 rows rach) and fit each of following model
+
+* y ~ x1
+* y ~ x1+x2
+* y ~ x1+x2+x3
+* y ~ x1+x2+x3+x4
+.
+.
+* y ~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9
+
+Each time we calculate train and test RMSE and repeat this process for each of three levels of $\sigma$ .
+
+### Methods
+
+### Read Data
+
+To populate the `study_3` data of predixtors and prepare tarin and test data.
+
+```{r, solution = TRUE}
+study_3 <- read.csv("study_3.csv")
+train_index = sample(1:nrow(study_3), 200)
+train_data  = study_3[train_index, ]
+test_data = study_3[-train_index, ]
+```
+
+#### Initialization
+
+Fixed parameters.
+
+```{r, solution = TRUE}
+beta_0 = 0
+beta_1 = 4
+beta_2 = 3
+beta_3 = 2
+beta_4 = 1
+sigma = c(1,5,10)
+n = 200
+num_sims = 500
+train_error <- data.frame(matrix(ncol = 9, nrow = 2))
+rownames(train_error) = c("Train","Test")
+colnames(train_error) = c("1","2","3","4","5","6","7","8","9")
+test_error  <- data.frame(matrix(ncol = 9, nrow = 2))
+rownames(test_error) = rownames(train_error)
+colnames(test_error) = colnames(train_error)
+results = rbind(train_error,test_error)
+```
+
+#### Simulation function
+
+A method for simulation so that it could be repeated for levels of noise.
+
+
+```{r, solution = TRUE}
+simulation3 = function(sigma){
+  for(i in 1:num_sims) {
+  eps = rnorm(n, mean = 0 , sd = sigma)
+  train_data$y= beta_0 + beta_1 * train_data$x1 + beta_2 *train_data$x2 + beta_3 *train_data$x3 + beta_4*train_data$x4 + eps
+  fit1 = lm(y ~ x1, data = train_data)
+  fit2 = lm(y ~ x1 + x2, data = train_data)
+  fit3 = lm(y ~ x1 + x2 + x3, data = train_data)
+  fit4 = lm(y ~ x1 + x2 + x3 + x4, data = train_data)
+  fit5 = lm(y ~ x1 + x2 + x3 + x4 + x5, data = train_data)
+  fit6 = lm(y ~ x1 + x2 + x3 + x4 + x5 + x6, data = train_data)
+  fit7 = lm(y ~ x1 + x2 + x3 + x4 + x5 + x6 + x7, data = train_data)
+  fit8 = lm(y ~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8, data = train_data)
+  fit9 = lm(y ~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9, data = train_data)
+  
+  # calculate all train errors
+  train_error[i,] = c(
+  rmse(train_data$y, predict(fit1, train_data)),
+  rmse(train_data$y, predict(fit2, train_data)),
+  rmse(train_data$y, predict(fit3, train_data)),
+  rmse(train_data$y, predict(fit4, train_data)),
+  rmse(train_data$y, predict(fit5, train_data)),
+  rmse(train_data$y, predict(fit6, train_data)),
+  rmse(train_data$y, predict(fit7, train_data)),
+  rmse(train_data$y, predict(fit8, train_data)),
+  rmse(train_data$y, predict(fit9, train_data))
+  )
+  
+  # calculate all test errors
+  test_error[i,] = c(
+  rmse(test_data$y, predict(fit1, test_data)),
+  rmse(test_data$y, predict(fit2, test_data)),
+  rmse(test_data$y, predict(fit3, test_data)),
+  rmse(test_data$y, predict(fit4, test_data)),
+  rmse(test_data$y, predict(fit5, test_data)),
+  rmse(test_data$y, predict(fit6, test_data)),
+  rmse(test_data$y, predict(fit7, test_data)),
+  rmse(test_data$y, predict(fit8, test_data)),
+  rmse(test_data$y, predict(fit9, test_data))
+  )
+  
+  
+  
+  }
+  rbind(colMeans(train_error),colMeans(test_error))
+}
+
+# function to evaluate rmse
+rmse  = function(actual, predicted) {
+  sqrt(mean((actual - predicted) ^ 2))
+}
+
+
+
+```
+
+
+### Results
+```{r,solution="TRUE"}
+par(mfrow = c(1, 3))
+for (i in 1:3){
+  results = simulation3(sigma[i])
+  plot(1:9, results[1,], type="n", main=paste("Sigma = ",toString(sigma[i])), xlab = "Models", ylab = "RMSE",ylim = c(0,12),xaxt="n")
+  axis(1, at = seq(1, 9, by = 1), las=2)
+  lines(1:9,results[1,],col="blue",lwd=2.5)
+  lines(1:9,results[2,],col="red",lwd=2.5)
+  legend('center', c("Train","Test"), lty=c(1,1), lwd=c(2.5,2.5),col=c("blue","red")) 
+}
+```
+
+### Discussion
+
+
