@@ -193,8 +193,12 @@ sqrt(mean(model5$residuals^2))</code></pre>
 <pre class="r"><code>library(MASS)
 set.seed(42)
 train_index = sample(1:nrow(Boston), 400)
-train = Boston[train_index,]
-test = Boston[-train_index,]</code></pre>
+train_data = Boston[train_index,]
+nrow(train_data)</code></pre>
+<pre><code>## [1] 400</code></pre>
+<pre class="r"><code>test = Boston[-train_index,]
+nrow(test)</code></pre>
+<pre><code>## [1] 106</code></pre>
 <p>Fit a total of five models using the training data.</p>
 <ul>
 <li>One must use all possible predictors.</li>
@@ -206,7 +210,7 @@ test = Boston[-train_index,]</code></pre>
 <ul>
 <li>One must use all possible predictors.</li>
 </ul>
-<pre class="r"><code>model_all=lm(medv~.,data=train)
+<pre class="r"><code>model_all=lm(medv~.,data=train_data)
 (trainRMSE = sqrt(mean(model_all$residuals^2)))</code></pre>
 <pre><code>## [1] 4.608428</code></pre>
 <pre class="r"><code>test_resid = abs(predict(model_all,newdata = test)-test$medv)
@@ -215,7 +219,7 @@ test = Boston[-train_index,]</code></pre>
 <ul>
 <li>One must use only <code>crim</code> as a predictor.</li>
 </ul>
-<pre class="r"><code>model_crim=lm(medv~crim,data=train)
+<pre class="r"><code>model_crim=lm(medv~crim,data=train_data)
 (trainRMSE = sqrt(mean(model_crim$residuals^2)))</code></pre>
 <pre><code>## [1] 8.254144</code></pre>
 <pre class="r"><code>test_resid = abs(predict(model_crim,newdata = test)-test$medv)
@@ -224,19 +228,19 @@ test = Boston[-train_index,]</code></pre>
 <ul>
 <li>The remaining 3</li>
 </ul>
-<pre class="r"><code>model3=lm(medv~crim+zn+indus+nox+rm+age+dis+rad+tax+ptratio+black+lstat,data=train)
+<pre class="r"><code>model3=lm(medv~crim+zn+indus+nox+rm+age+dis+rad+tax+ptratio+black+lstat,data=train_data)
 (trainRMSE = sqrt(mean(model3$residuals^2)))</code></pre>
 <pre><code>## [1] 4.615624</code></pre>
 <pre class="r"><code>test_resid = abs(predict(model3,newdata = test)-test$medv)
 (testRMSE = sqrt(mean(test_resid^2)))</code></pre>
 <pre><code>## [1] 5.16131</code></pre>
-<pre class="r"><code>model4=lm(medv~crim+zn+indus+nox+rm+age+dis+tax+ptratio+black+lstat,data=train)
+<pre class="r"><code>model4=lm(medv~crim+zn+indus+nox+rm+age+dis+tax+ptratio+black+lstat,data=train_data)
 (trainRMSE = sqrt(mean(model4$residuals^2)))</code></pre>
 <pre><code>## [1] 4.720684</code></pre>
 <pre class="r"><code>test_resid = abs(predict(model4,newdata = test)-test$medv)
 (testRMSE = sqrt(mean(test_resid^2)))</code></pre>
 <pre><code>## [1] 5.304049</code></pre>
-<pre class="r"><code>model5=lm(medv~crim+indus+nox+rm+age+dis+tax+ptratio+black+lstat,data=train)
+<pre class="r"><code>model5=lm(medv~crim+indus+nox+rm+age+dis+tax+ptratio+black+lstat,data=train_data)
 (trainRMSE = sqrt(mean(model5$residuals^2)))</code></pre>
 <pre><code>## [1] 4.744208</code></pre>
 <pre class="r"><code>test_resid = abs(predict(model5,newdata = test)-test$medv)

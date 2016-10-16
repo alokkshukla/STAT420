@@ -91,8 +91,10 @@ Set a seed of `42` and then split the `Boston` data into two datasets, one calle
 library(MASS)
 set.seed(42)
 train_index = sample(1:nrow(Boston), 400)
-train = Boston[train_index,]
+train_data = Boston[train_index,]
+nrow(train_data)
 test = Boston[-train_index,]
+nrow(test)
 ```
 
 Fit a total of five models using the training data.
@@ -108,7 +110,7 @@ For each model report the **train** and **test** RMSE. Argue that one of your mo
 - One must use all possible predictors.
 
 ```{r}
-model_all=lm(medv~.,data=train)
+model_all=lm(medv~.,data=train_data)
 (trainRMSE = sqrt(mean(model_all$residuals^2)))
 test_resid = abs(predict(model_all,newdata = test)-test$medv)
 (testRMSE = sqrt(mean(test_resid^2)))
@@ -117,7 +119,7 @@ test_resid = abs(predict(model_all,newdata = test)-test$medv)
 - One must use only `crim` as a predictor.
 
 ```{r}
-model_crim=lm(medv~crim,data=train)
+model_crim=lm(medv~crim,data=train_data)
 (trainRMSE = sqrt(mean(model_crim$residuals^2)))
 test_resid = abs(predict(model_crim,newdata = test)-test$medv)
 (testRMSE = sqrt(mean(test_resid^2)))
@@ -126,17 +128,17 @@ test_resid = abs(predict(model_crim,newdata = test)-test$medv)
 - The remaining 3
 
 ```{r}
-model3=lm(medv~crim+zn+indus+nox+rm+age+dis+rad+tax+ptratio+black+lstat,data=train)
+model3=lm(medv~crim+zn+indus+nox+rm+age+dis+rad+tax+ptratio+black+lstat,data=train_data)
 (trainRMSE = sqrt(mean(model3$residuals^2)))
 test_resid = abs(predict(model3,newdata = test)-test$medv)
 (testRMSE = sqrt(mean(test_resid^2)))
 
-model4=lm(medv~crim+zn+indus+nox+rm+age+dis+tax+ptratio+black+lstat,data=train)
+model4=lm(medv~crim+zn+indus+nox+rm+age+dis+tax+ptratio+black+lstat,data=train_data)
 (trainRMSE = sqrt(mean(model4$residuals^2)))
 test_resid = abs(predict(model4,newdata = test)-test$medv)
 (testRMSE = sqrt(mean(test_resid^2)))
 
-model5=lm(medv~crim+indus+nox+rm+age+dis+tax+ptratio+black+lstat,data=train)
+model5=lm(medv~crim+indus+nox+rm+age+dis+tax+ptratio+black+lstat,data=train_data)
 (trainRMSE = sqrt(mean(model5$residuals^2)))
 test_resid = abs(predict(model5,newdata = test)-test$medv)
 (testRMSE = sqrt(mean(test_resid^2)))
