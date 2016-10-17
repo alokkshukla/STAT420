@@ -47,7 +47,7 @@ We will be simulating 2500 times.
 
 #### Read Data
 
-To populate the `study_1` data of predixtors.
+To populate the `study_1` data of predictors.
 
 ```{r, solution = TRUE}
 study_1 <- read.csv("study_1.csv")
@@ -75,6 +75,12 @@ e_y = rep(0, num_sims)
 x1_fix = -4
 x2_fix = 2.5
 x3_fix = 3
+x_fix = c(1,x1_fix,x2_fix,x3_fix)
+x0 = rep(1,nrow(study_1))
+beta = c(beta_0,beta_1,beta_2,beta_3)
+X = cbind(x0,study_1$x1,study_1$x2,study_1$x3)
+C = solve(t(X) %*% X)
+r = t(x_fix)%*%C%*%x_fix
 ```
 
 #### Simulation function
@@ -87,11 +93,11 @@ simulation1 = function(sigma){
   for(i in 1:num_sims) {
   eps         = rnorm(n, mean = 0 , sd = sigma)
   study_1$y   = beta_0 + beta_1 * x1 + beta_2 * x2 + beta_3 * x3 + eps
-  fit           = lm(y ~ ., data = study_1)
-  p = length(coef(fit))
+  fit         = lm(y ~ ., data = study_1)
+ 
   beta_hat_2[i]  = coef(fit)[3]
   y_hat = predict(fit,data=study_1)
-  s_e[i] = sqrt(sum((study_1$y - y_hat) ^ 2) / (n - p))
+  s_e[i] = summary(fit)$sigma#
   e_y[i] = coef(fit)[1]+coef(fit)[2]*x1_fix+coef(fit)[3]*x2_fix+coef(fit)[4]*x3_fix
   
   }
@@ -110,21 +116,39 @@ simulation1 = function(sigma){
 
 ### Results
 
-```{r,solutions="TRUE"}
+```{r,echo=FALSE}
 par(mfrow = c(3, 3))
 for (i in 1:3){
   results = simulation1(sigma[i])
   hist(results[,1], prob = TRUE, breaks = 20, 
      xlab = expression(hat(beta)[1]), main = paste("Sigma = ",toString(sigma[i])), border = "dodgerblue")
+  curve(dnorm(x, mean = beta_2, sd = sqrt(sigma[i] ^ 2 * C[2 + 1, 2 + 1])), 
+      col = "red", add = TRUE, lwd = 3)
   hist(results[,2], prob = TRUE, breaks = 20, 
      xlab = expression(s[e]), main = paste("Sigma = ",toString(sigma[i])), border = "orange")
   hist(results[,3], prob = TRUE, breaks = 20, 
      xlab = expression(hat(E[Y])), main = paste("Sigma = ",toString(sigma[i])), border = "green")
-  
+  x = seq(min(results[,3]),max(results[,3]),(max(results[,3])-min(results[,3]))/20)
+  curve(dnorm(x, mean = (t(x_fix)%*%beta)[1,1], sd = sqrt(sigma[i]*r)), col = "dodgerblue", add = TRUE, lwd = 3)
 }
 ```
 
 ### Discussion
+
+**True Distributions**
+
+We know True Distributions of $\hat{\beta}_2$ and $\hat{E}[Y \mid x_1 = -4, x_2 = 2.5, x_3 = 0]$. They are given by
+$\hat{\beta}_2 \sim N\left(\beta_j, \sigma^2 C_{33}  \right).$
+and
+$\hat{E(Y)} \sim N\left(\hat{y}, \sigma^2 * {x}^TC*x \right).$
+
+**Empirical vs True Distributions**
+
+The empirical distribution of $\hat{\beta}_2$ is quite similar to its true distribution for all levels of noise. For $\hat{E}[Y \mid x_1 = -4, x_2 = 2.5, x_3 = 0]$, the true distribution tends to get narrower than empirical as we increase noise.
+
+**Effect of Noise**
+
+As noise increases, the spread of all distributions increases.
 
 
 ## Simulation Study 2, MSE of Estimators
@@ -213,7 +237,7 @@ gen_sim_data = function(n = 100) {
 
 #### Simulation function
 
-A method for simulation so that it could be repeated for levels of noise.
+A method for simulation so that it could be repeated for different sample sizes.
 
 
 ```{r, solution = TRUE}
@@ -241,11 +265,12 @@ simulation2 = function(n){
 }
 
 
-#simulation2(100)
+
 
 ```
+
 ### Results
-```{r,solution="TRUE"}
+```{r,echo=FALSE}
 par(mfrow=c(3,3))
 mse_data = data.frame(matrix(ncol = 3, nrow = 10))
 bias_data = data.frame(matrix(ncol = 3, nrow = 10))
@@ -284,12 +309,20 @@ for (i in 1:3){
 
 ### Discussion
 
+**Effect of Sample Size**
+
+MSE and Variance, both decrease with increased sample size; and the Bias fluctuates and tends towards zero.
+
+**Correct vs Incorrect fit**
+
+It doesn't matter if we fit correct form or the incorrect form; the estimators are estimated correctly according to present predictors.
+
 
 ## Simulation Study 3, RMSE for Prediction
 
 ### Introduction
 
-In this Simulation Study we will how effective is using RMSE as a parameter for selecting the best model. We will be simulating following model
+In this Simulation Study we will see how effective is using RMSE as a parameter for selecting the best model. We will be simulating following model
 \begin{equation}
 Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4} + \epsilon_i
 \end{equation}
@@ -321,15 +354,12 @@ Each time we calculate train and test RMSE and repeat this process for each of t
 
 ### Methods
 
-### Read Data
+#### Read Data
 
 To populate the `study_3` data of predixtors and prepare tarin and test data.
 
 ```{r, solution = TRUE}
 study_3 <- read.csv("study_3.csv")
-train_index = sample(1:nrow(study_3), 200)
-train_data  = study_3[train_index, ]
-test_data = study_3[-train_index, ]
 ```
 
 #### Initialization
@@ -352,6 +382,7 @@ test_error  <- data.frame(matrix(ncol = 9, nrow = 2))
 rownames(test_error) = rownames(train_error)
 colnames(test_error) = colnames(train_error)
 results = rbind(train_error,test_error)
+chosen_model = rep(0,num_sims)
 ```
 
 #### Simulation function
@@ -362,6 +393,9 @@ A method for simulation so that it could be repeated for levels of noise.
 ```{r, solution = TRUE}
 simulation3 = function(sigma){
   for(i in 1:num_sims) {
+  train_index = sample(1:nrow(study_3), 200)
+  train_data  = study_3[train_index, ]
+  test_data = study_3[-train_index, ]
   eps = rnorm(n, mean = 0 , sd = sigma)
   train_data$y= beta_0 + beta_1 * train_data$x1 + beta_2 *train_data$x2 + beta_3 *train_data$x3 + beta_4*train_data$x4 + eps
   fit1 = lm(y ~ x1, data = train_data)
@@ -400,9 +434,12 @@ simulation3 = function(sigma){
   rmse(test_data$y, predict(fit9, test_data))
   )
   
+  (chosen_model[i] = which.min(test_error[i,]))
+  #message(paste("Chosen model is ",chosen_model[i]))
   
   
   }
+  message(paste("Overall chosen model is ",Mode(chosen_model)))
   rbind(colMeans(train_error),colMeans(test_error))
 }
 
@@ -411,17 +448,23 @@ rmse  = function(actual, predicted) {
   sqrt(mean((actual - predicted) ^ 2))
 }
 
+Mode = function(x) {
+  ux = unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
 
 
 ```
 
 
 ### Results
-```{r,solution="TRUE"}
+```{r,echo=FALSE}
 par(mfrow = c(1, 3))
 for (i in 1:3){
   results = simulation3(sigma[i])
+  
   plot(1:9, results[1,], type="n", main=paste("Sigma = ",toString(sigma[i])), xlab = "Models", ylab = "RMSE",ylim = c(0,12),xaxt="n")
+  points(which.min(results[,2]),0)
   axis(1, at = seq(1, 9, by = 1), las=2)
   lines(1:9,results[1,],col="blue",lwd=2.5)
   lines(1:9,results[2,],col="red",lwd=2.5)
@@ -430,5 +473,13 @@ for (i in 1:3){
 ```
 
 ### Discussion
+
+**Effect of Noise**
+
+As noise increases, train RMSE increases while test RMSE remains almost the same.
+
+**Model Selection**
+
+The method does not always select the best model but on average it does select the best model i.e model 1 ( lowest test RMSE )
 
 
