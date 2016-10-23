@@ -1,0 +1,366 @@
+---
+title: "STAT420 Homework 7"
+author: "Alok K. Shukla ( alokks2 )"
+date: "10/23/2016"
+output:
+  html_document:
+    theme: readable
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+options(scipen = 1, digits = 4, width = 80)
+```
+
+# Assignment Solutions
+
+## Exercise 1 (Brand Rankings)
+
+In order to determine which of three recipes (`A`, `B`, and `C`) to use, a cookie manufacturer divided 18 individuals at random into three groups and asked each one of them to rate one recipe on a scale from 0 to 100.
+
+Consider the model $y_{ij} = \mu + \alpha_i + e_{ij}$ where $\sum \alpha_i = 0$ and $e_{ij} \sim N(0,\sigma^{2})$. Here, $\mu + \alpha_i$ represents the mean of group (recipe) $i$. 
+
+Create side-by-side boxplots of the ratings of the three recipes. Test for a difference among the three recipes. If there is a difference, which recipes are different? Use $\alpha = 0.10$ for all tests. Which recipe would you use?
+
+**Solution**
+
+```{r, solution=TRUE}
+cookies <- read.csv("cookies.csv")
+# names(cookies)
+plot(rating ~ brand, data = cookies, col = 2:5)
+cookies_aov = aov(rating ~ brand, data = cookies)
+summary(cookies_aov)
+```
+
+We notice that p-value of this test is significant (>0.05), thus we fail to reject the null hypothesis for 0.10 significance level. Thus we fail to conculde if recipies had any effect on ratings.
+
+Lets do pairwise t-tests
+
+```{r}
+with(cookies, pairwise.t.test(rating, brand, p.adj = "none"))
+```
+We can only say that recipe B and C are different; with p-value less than 0.05; and we see that we could reject the null hypothesis; and since C has the highest mean, i would choose C.
+
+## Exercise 2 (Concrete Strength)
+
+An engineer is investigating the strength of concrete beams made from four types of cement and employing three curing processes. For each cement-curing combination, three beams are made and their breaking strength is measured. (A $4 \times 3$ randomized factorial design with $3$ replicates.) 
+
+Consider the model:
+
+\[
+y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
+\]
+
+where
+
+\[
+i = 1, \cdots I \quad j = 1, \cdots J \quad k = 1 \cdots, K
+\]
+
+and $\epsilon_{ijk}$ are $N(0, \sigma^2)$ random variables.
+\
+\
+
+With constraints:
+
+\[
+\sum \alpha_i = 0 \quad \quad \sum \beta_j = 0.
+\]
+
+Additionally:
+
+\[
+(\alpha \beta)_{1j} + (\alpha \beta)_{2j} + (\alpha \beta)_{3j} = 0 \\
+(\alpha \beta)_{i1} + (\alpha \beta)_{i2} + (\alpha \beta)_{i3} + (\alpha \beta)_{i4} = 0
+\]
+
+for any $i$ or $j$.
+
+Let $\alpha_i$ represent the main effect for cement, which has four levels.
+
+Let $\beta_j$ represent the main effect for curing process, which takes three levels.
+
+The data can be found in [`concrete.csv`](concrete.csv). Test for interaction between the two factors. If necessary, test for main effects. Use $\alpha = 0.05$ for all tests. State the final model you choose. Also, create an interaction plot. Does this plot make sense for the model you chose? With the model you chose (and then fit), create a table that shows the estimated mean for each of the $4 \times 3$ factor level combinations.
+
+**Solution**
+
+```{r, solution=TRUE}
+concrete <- read.csv("concrete.csv")
+concrete$curing = as.factor(concrete$curing)
+#levels(concrete$curing)
+#levels(concrete$cement)
+```
+
+*Interaction Plots*
+
+```{r}
+par(mfrow = c(1, 2))
+with(concrete, interaction.plot(curing, cement, strength, lwd = 2, col = 1:4))
+with(concrete, interaction.plot(cement, curing, strength, lwd = 2, col = 1:3))
+```
+The obvious indication of interaction would be lines that cross while heading in different directions. Here we don’t see that, but the lines aren’t strictly parallel, and there is some overlap on the right panel. 
+
+*Models*
+
+```{r}
+concrete_int   = aov(strength ~ curing * cement, data = concrete) # interaction model
+concrete_add   = aov(strength ~ curing + cement, data = concrete) # additive model
+concrete_pois  = aov(strength ~ curing , data = concrete)        # single factor model   
+concrete_treat = aov(strength ~ cement, data = concrete)          # single factor model
+concrete_null  = aov(strength ~ 1, data = concrete)              # null model
+```
+
+*Selection*
+
+```{r}
+table = expand.grid(curing = unique(concrete$curing), cement = unique(concrete$cement))
+get_est_means = function(model) {
+  mat = matrix(predict(model, table), nrow = 4, ncol = 3, byrow = TRUE)
+  colnames(mat) = c("1", "2", "3")
+  rownames(mat) = c("A", "B", "C", "D")
+  mat
+}
+knitr::kable(get_est_means(concrete_int))
+knitr::kable(get_est_means(concrete_add))
+additive_means = get_est_means(concrete_add)
+additive_means["A",] - additive_means["B",]
+interaction_means = get_est_means(concrete_int)
+interaction_means["A",] - interaction_means["B",]
+summary(aov(strength ~ curing * cement, data = concrete))
+summary(aov(strength ~ curing + cement, data = concrete))
+```
+
+
+
+## Exercise 3 (Weight Gain)
+
+A total of $60$ concrete were used in an experiment about the effects of protein quantity and source on weight gain. The experiment used a $2 \times 3$ randomized factorial design with $10$ replicates. (For each of the $6$ treatments, $10$ concrete were randomly chosen.) 
+
+Each rat was fed a `low` or `high` protein diet from one of three sources: `beef`, `cereal`, or `pork`. After a period of time, the weight `gain` (the response, $y$) of each was measured in grams. 
+
+Consider the model:
+
+\[
+y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
+\]
+
+where
+
+\[
+i = 1, \cdots I \quad j = 1, \cdots J \quad k = 1 \cdots, K
+\]
+
+and $\epsilon_{ijk}$ are $N(0, \sigma^2)$ random variables.
+\
+\
+
+With constraints:
+
+\[
+\sum \alpha_i = 0 \quad \quad \sum \beta_j = 0.
+\]
+
+Additionally:
+
+\[
+(\alpha \beta)_{1j} + (\alpha \beta)_{2j} + (\alpha \beta)_{3j} = 0 \\
+(\alpha \beta)_{i1} + (\alpha \beta)_{i2} + (\alpha \beta)_{i3} + (\alpha \beta)_{i4} = 0
+\]
+
+for any $i$ or $j$.
+
+Let $\alpha_i$ represent the main effect for protein quantity, which has two levels; `high` and `low`.
+
+Let $\beta_j$ represent the main effect for protein source, which takes three levels; `beef`, `cereal` and `pork`.
+
+The data can be found in [`rat_wt.csv`](rat_wt.csv). Test for interaction between the two factors. If necessary, test for main effects. Use $\alpha = 0.10$ for all tests. State the final model you choose. Also, create an interaction plot. Does this plot make sense for the model you chose? With the model you chose (and then fit), create a table that shows the estimated mean for each of the $2 \times 3$ factor level combinations.
+
+**Solution**
+
+
+```{r, solution=TRUE}
+rats <- read.csv("rat_wt.csv")
+
+#levels(rats$source)
+#levels(rats$protein)
+```
+
+*Interaction Plots*
+
+```{r}
+par(mfrow = c(1, 2))
+with(rats, interaction.plot(source, protein, gain, lwd = 2, col = 1:4))
+with(rats, interaction.plot(protein, source, gain, lwd = 2, col = 1:3))
+```
+There is an obvious indication of interaction as lines cross while heading in different directions.  
+
+*Models*
+
+```{r}
+rats_int   = aov(gain ~ source * protein, data = rats) # interaction model
+rats_add   = aov(gain ~ source + protein, data = rats) # additive model
+rats_pois  = aov(gain ~ source , data = rats)        # single factor model   
+rats_treat = aov(gain ~ protein, data = rats)          # single factor model
+rats_null  = aov(gain ~ 1, data = rats)              # null model
+```
+
+*Selection*
+
+```{r}
+table = expand.grid(source = unique(rats$source), protein = unique(rats$protein))
+knitr::kable(get_est_means(rats_int))
+knitr::kable(get_est_means(rats_add))
+additive_means = get_est_means(rats_add)
+additive_means["high",] - additive_means["low",]
+interaction_means = get_est_means(rats_int)
+interaction_means["high",] - interaction_means["low",]
+summary(aov(gain ~ source * protein, data = rats))
+summary(aov(gain ~ source + protein, data = rats))
+```
+
+## Exercise 4 (Sample Size, Power)
+
+Now that we're performing experiments, getting more data means finding more test subjects, running more lab tests, etc. In other words, it will cost more time and money.
+
+We'd like to design our experiment so that we have a good chance of detecting an interesting effect size, without spending too much money. There's no point in running an experiment if there's only a very low chance that it has a significant result **that you care about**. (Not all statistically significant results have practical value.)
+
+Suppose we will run an experiment that compares three treatments: `A`, `B`, and `C`. From previous study, we believe the shared variance could be $\sigma^2 = 1$. 
+
+Consider the model $y_{ij} = \mu_j + e_{ij}$ where $e_{ij} \sim N(0,\sigma^{2})$. Here $j = 1, 2, 3$, for `A`, `B`, and `C`.
+
+The null hypothesis of the test we will run is:
+
+\[
+H_0: \mu_A = \mu_B = \mu_C
+\]
+
+Suppose that we're interested in an alternative where
+
+\[
+\mu_A = -1, \mu_B = 0, \mu_C = 1
+\]
+
+Mostly, we've used simulation to verify results. Now, we'll use simulation to save money (in place of some rather difficult mathematics)!
+
+Use simulation to determine the *minimum* sample size that has *at least* a 90% chance to reject the null hypothesis when that alternative is true and $\alpha = 0.05$. That is, find the sample size which gives a **power** of at least 0.90 for the stated alternative. Consider only balanced designs, which have the same number of replications in each group. For each sample size, use at least 250 simulations. (More simulations will give a better estimate of the power and will create a smoother resulting curve.)
+
+Plot your results. What sample size do you choose?
+
+Before performing the simulations, set a seed value equal to **your** birthday, as was done in the previous homework assignments.
+
+**Solution**
+
+```{r}
+birthday = 19920120
+set.seed(birthday)
+```
+
+```{r}
+library(broom)
+
+sim_anova = function(n = 10, mu_a = 0, mu_b = 0, mu_c = 0, sigma = 1, stat = TRUE) {
+  
+  # create data from one-way ANOVA model with four groups of equal size
+  # response simulated from normal with group mean, shared variance
+  # group variable indicates group A, B, C or D
+  sim_data = data.frame(
+    response = c(rnorm(n = n, mean = mu_a, sd = sigma),
+                 rnorm(n = n, mean = mu_b, sd = sigma),
+                 rnorm(n = n, mean = mu_c, sd = sigma)),
+    group = c(rep("A", times = n), rep("B", times = n), 
+              rep("C", times = n))
+  )
+  
+  # obtain F-statistic and p-value for testing difference of means
+  aov_results = aov(response ~ group, data = sim_data)
+  f_stat = glance(aov_results)$stat
+  p_val  = glance(aov_results)$p.val
+  
+  # return f_stat if stat = TRUE, otheriwse, p-value
+  ifelse(stat, f_stat, p_val)
+  
+}
+
+
+```
+
+```{r,solution=TRUE}
+p_vals = replicate(n = 500, sim_anova(n=13,mu_a = -1, mu_b = 0, mu_c = 1, 
+                                     sigma = 1, stat = FALSE))
+mean(p_vals < 0.0025)
+```
+
+
+
+## Exercise 5 (Balanced Design, Power)
+
+Why do we use a balanced (equal number of replicates in each group) design? To maximize power. Let's verify this with simulation.
+
+Consider a simple example with $2$ groups A and B and a *total* sample size of $N = 10$. Where should we place these samples (replicates) between A and B? Obviously, at least one replicate needs to be in each, but after that, we can choose.
+
+Consider the model $y_{ij} = \mu_j + e_{ij}$ where $e_{ij} \sim N(0,\sigma^{2} = 1)$. Here $j = 1, 2$, for `A` and `B`.
+
+The null hypothesis of the test we will run is:
+
+\[
+H_0: \mu_A = \mu_B
+\]
+
+Suppose that we're interested in an alternative where
+
+\[
+\mu_A = 0, \mu_B = 2
+\]
+
+Calculate the power for each of the possible placements of the replicates with $\alpha = 0.05$. (Essentially, for $n_a = 1, 2, \ldots 9$.) For each possibility, use at least 500 simulations. Plot the results. Does balance provide the best power?
+
+Before performing the simulations, set a seed value equal to **your** birthday, as was done in the previous homework assignments.
+
+```{r}
+birthday = 19920120
+set.seed(birthday)
+```
+
+```{r}
+```{r}
+library(broom)
+
+sim_anova = function( mu_a = 0, mu_b = 2, n_a = 5, n_b=5,sigma = 1, stat = TRUE) {
+  
+  # create data from one-way ANOVA model with four groups of equal size
+  # response simulated from normal with group mean, shared variance
+  # group variable indicates group A, B, C or D
+  sim_data = data.frame(
+    response = c(rnorm(n = n_a, mean = mu_a, sd = sigma),
+                 rnorm(n = n_b, mean = mu_b, sd = sigma)),
+    group = c(rep("A", times = n_a), rep("B", times = n_b))
+  )
+  
+  # obtain F-statistic and p-value for testing difference of means
+  aov_results = aov(response ~ group, data = sim_data)
+  f_stat = glance(aov_results)$stat
+  p_val  = glance(aov_results)$p.val
+  
+  # return f_stat if stat = TRUE, otheriwse, p-value
+  ifelse(stat, f_stat, p_val)
+  
+}
+```
+
+```{r,solution=TRUE}
+p_vals = replicate(n = 500, sim_anova(mu_a = -1, mu_b = 0, n_a = 1, n_b = 9,
+                                     sigma = 1, stat = FALSE))
+mean(p_vals < 0.0025)
+p_vals = replicate(n = 500, sim_anova(mu_a = -1, mu_b = 0, n_a = 5, n_b = 5,
+                                     sigma = 1, stat = FALSE))
+mean(p_vals < 0.0025)
+p_vals = replicate(n = 500, sim_anova(mu_a = -1, mu_b = 0, n_a = 9, n_b = 1,
+                                     sigma = 1, stat = FALSE))
+mean(p_vals < 0.0025)
+```
+
+
+
+
