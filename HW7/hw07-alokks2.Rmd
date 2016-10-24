@@ -34,14 +34,14 @@ cookies_aov = aov(rating ~ brand, data = cookies)
 summary(cookies_aov)
 ```
 
-We notice that p-value of this test is significant (>0.05), thus we fail to reject the null hypothesis for 0.10 significance level. Thus we fail to conculde if recipies had any effect on ratings.
+We notice that p-value of this test is significant (>0.05), thus we fail to reject the null hypothesis for 0.10 significance level. And we fail to conclude if recipies had any effect on ratings. A small F-value suggests that there is a lot variance inside samples, even though we can see there is difference between means across samples.
 
 Lets do pairwise t-tests
 
 ```{r}
 with(cookies, pairwise.t.test(rating, brand, p.adj = "none"))
 ```
-We can only say that recipe B and C are different; with p-value less than 0.05; and we see that we could reject the null hypothesis; and since C has the highest mean, i would choose C.
+We can only say that recipe B and C are different; with p-value less than 0.05; and we see that we could reject the null hypothesis; and since C has the highest mean, I would choose C.
 
 ## Exercise 2 (Concrete Strength)
 
@@ -100,38 +100,41 @@ par(mfrow = c(1, 2))
 with(concrete, interaction.plot(curing, cement, strength, lwd = 2, col = 1:4))
 with(concrete, interaction.plot(cement, curing, strength, lwd = 2, col = 1:3))
 ```
+\newline
 The obvious indication of interaction would be lines that cross while heading in different directions. Here we don’t see that, but the lines aren’t strictly parallel, and there is some overlap on the right panel. 
 
-*Models*
+*ANOVA*
+```{r}
+summary(aov(strength ~ curing * cement, data = concrete))
+summary(aov(strength ~ curing + cement, data = concrete))
+```
+We see that interaction is not significant for alpha = 0.05. We can see the additive model is the right one.The difference between the effect of cements `A` and `B` is the same for each curing in the additive model. 
+
 
 ```{r}
 concrete_int   = aov(strength ~ curing * cement, data = concrete) # interaction model
 concrete_add   = aov(strength ~ curing + cement, data = concrete) # additive model
-concrete_pois  = aov(strength ~ curing , data = concrete)        # single factor model   
-concrete_treat = aov(strength ~ cement, data = concrete)          # single factor model
-concrete_null  = aov(strength ~ 1, data = concrete)              # null model
-```
-
-*Selection*
-
-```{r}
-table = expand.grid(curing = unique(concrete$curing), cement = unique(concrete$cement))
-get_est_means = function(model) {
+concrete_table = expand.grid(curing = unique(concrete$curing), cement = unique(concrete$cement))
+get_est_means = function(model,table) {
   mat = matrix(predict(model, table), nrow = 4, ncol = 3, byrow = TRUE)
   colnames(mat) = c("1", "2", "3")
   rownames(mat) = c("A", "B", "C", "D")
   mat
 }
-knitr::kable(get_est_means(concrete_int))
-knitr::kable(get_est_means(concrete_add))
-additive_means = get_est_means(concrete_add)
+additive_means = get_est_means(model = concrete_add, table = concrete_table)
 additive_means["A",] - additive_means["B",]
-interaction_means = get_est_means(concrete_int)
-interaction_means["A",] - interaction_means["B",]
-summary(aov(strength ~ curing * cement, data = concrete))
-summary(aov(strength ~ curing + cement, data = concrete))
+
+
 ```
 
+
+*Estimation*
+
+Estimated means for each of 4x3 factor level combinations.
+
+```{r}
+knitr::kable(get_est_means(model=concrete_add,table=concrete_table))
+```
 
 
 ## Exercise 3 (Weight Gain)
@@ -182,7 +185,6 @@ The data can be found in [`rat_wt.csv`](rat_wt.csv). Test for interaction betwee
 
 ```{r, solution=TRUE}
 rats <- read.csv("rat_wt.csv")
-
 #levels(rats$source)
 #levels(rats$protein)
 ```
@@ -194,30 +196,32 @@ par(mfrow = c(1, 2))
 with(rats, interaction.plot(source, protein, gain, lwd = 2, col = 1:4))
 with(rats, interaction.plot(protein, source, gain, lwd = 2, col = 1:3))
 ```
-There is an obvious indication of interaction as lines cross while heading in different directions.  
+\newline
+There is an obvious indication of interaction as lines cross while heading in different directions in both plots.
 
-*Models*
+
+*ANOVA*
+```{r}
+summary(aov(gain~source * protein, data = rats))
+```
+Using an  alpha  of  0.05 the ANOVA test finds that the interaction is significant, so we use the interaction model here.
+
+*Estimates*
+
+Estimated means for each of 2x3 factor combinations.
 
 ```{r}
 rats_int   = aov(gain ~ source * protein, data = rats) # interaction model
-rats_add   = aov(gain ~ source + protein, data = rats) # additive model
-rats_pois  = aov(gain ~ source , data = rats)        # single factor model   
-rats_treat = aov(gain ~ protein, data = rats)          # single factor model
-rats_null  = aov(gain ~ 1, data = rats)              # null model
-```
+get_est_means = function(model,table) {
+  mat = matrix(predict(model, table), nrow = 2, ncol = 3, byrow = TRUE)
+  colnames(mat) = c("pork", "cereal", "beef")
+  rownames(mat) = c("high", "low")
+  mat
+}
 
-*Selection*
+rats_table = expand.grid(source = unique(rats$source), protein = unique(rats$protein))
+knitr::kable(get_est_means(model=rats_int,table=rats_table))
 
-```{r}
-table = expand.grid(source = unique(rats$source), protein = unique(rats$protein))
-knitr::kable(get_est_means(rats_int))
-knitr::kable(get_est_means(rats_add))
-additive_means = get_est_means(rats_add)
-additive_means["high",] - additive_means["low",]
-interaction_means = get_est_means(rats_int)
-interaction_means["high",] - interaction_means["low",]
-summary(aov(gain ~ source * protein, data = rats))
-summary(aov(gain ~ source + protein, data = rats))
 ```
 
 ## Exercise 4 (Sample Size, Power)
@@ -260,7 +264,7 @@ set.seed(birthday)
 ```{r}
 library(broom)
 
-sim_anova = function(n = 10, mu_a = 0, mu_b = 0, mu_c = 0, sigma = 1, stat = TRUE) {
+sim_anova2 = function(n = 10, mu_a = 0, mu_b = 0, mu_c = 0, sigma = 1, stat = TRUE) {
   
   # create data from one-way ANOVA model with four groups of equal size
   # response simulated from normal with group mean, shared variance
@@ -287,11 +291,35 @@ sim_anova = function(n = 10, mu_a = 0, mu_b = 0, mu_c = 0, sigma = 1, stat = TRU
 ```
 
 ```{r,solution=TRUE}
-p_vals = replicate(n = 500, sim_anova(n=13,mu_a = -1, mu_b = 0, mu_c = 1, 
+
+y = c(0)
+x = c(0)
+for (i in 1:100){
+  p_vals = replicate(n = 1000, sim_anova2(n=i,mu_a = -1, mu_b = 0, mu_c = 1, 
                                      sigma = 1, stat = FALSE))
-mean(p_vals < 0.0025)
+  y = c(y,mean(p_vals < 0.0025))
+  if(is.na(y[i])){
+    y[i] = 0
+  }
+  x=c(x,i)
+  if(y[i]>0.9){
+    print(i);
+    break;
+  }
+  
+}
+
+
+plot(x[2:length(x)],y[2:length(x)],type="n", main="Various Sample sizes vs Mean p-val", xlab = "Size of sample", ylab = "Mean p-val",xaxt="n",yaxt="n")
+axis(1, at = x[2:length(x)], las=2)
+axis(2, at = y[2:length(x)], las=2)
+lines(x[2:length(x)],y[2:length(x)],col="green",lwd=2.5)
+abline(h=0.9,lty=2)
+abline(v=i-1,lty=2)
+
 ```
 
+We observe that for sample size = 13, we get a p-val greater than 0.9; thus 13 is the chosen sample size.
 
 
 ## Exercise 5 (Balanced Design, Power)
@@ -319,11 +347,11 @@ Calculate the power for each of the possible placements of the replicates with $
 Before performing the simulations, set a seed value equal to **your** birthday, as was done in the previous homework assignments.
 
 ```{r}
-birthday = 19920120
+birthday = 19910929
 set.seed(birthday)
 ```
 
-```{r}
+
 ```{r}
 library(broom)
 
@@ -350,17 +378,29 @@ sim_anova = function( mu_a = 0, mu_b = 2, n_a = 5, n_b=5,sigma = 1, stat = TRUE)
 ```
 
 ```{r,solution=TRUE}
-p_vals = replicate(n = 500, sim_anova(mu_a = -1, mu_b = 0, n_a = 1, n_b = 9,
+par(mfrow=c(1,1))
+
+mean_p_vals = rep(0,9)
+
+x = c(1,2,3,4,5,6,7,8,9)
+
+for (a in x){
+  b = 10-a;
+  p_vals = replicate(n = 500, sim_anova(mu_a = 0, mu_b = 2, n_a = a, n_b = b,
                                      sigma = 1, stat = FALSE))
-mean(p_vals < 0.0025)
-p_vals = replicate(n = 500, sim_anova(mu_a = -1, mu_b = 0, n_a = 5, n_b = 5,
-                                     sigma = 1, stat = FALSE))
-mean(p_vals < 0.0025)
-p_vals = replicate(n = 500, sim_anova(mu_a = -1, mu_b = 0, n_a = 9, n_b = 1,
-                                     sigma = 1, stat = FALSE))
-mean(p_vals < 0.0025)
+ 
+  
+  mean_p_vals[a]=mean(p_vals < 0.0025)
+ 
+}
+
+plot(x,mean_p_vals,type="n", main="Various Sample size combinations vs Mean p-val", xlab = "Size of one sample, other's size = 10 - label", ylab = "Mean p-val",xaxt="n")
+axis(1, at = x, las=2)
+lines(x,mean_p_vals,col="green",lwd=2.5)
+abline(v =5 ,lty = 2)
+
 ```
 
-
+We can conclude from the plot that balance provides the best power (max p-val).
 
 
