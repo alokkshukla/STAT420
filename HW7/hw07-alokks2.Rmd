@@ -41,7 +41,7 @@ We notice that p-value of this test is not significant (<0.1), thus  reject the 
 ```{r}
 TukeyHSD(cookies_aov, conf.level = 0.9)
 ```
-We can see that, for alpha = 0.1, only B and C have different means and since C has higher mean; I would choose C.
+We can see that, for alpha = 0.1, only B and C have different means ( Can reject null hypothesis for these at this level ) and since C has higher mean; I would choose C.
 
 ## Exercise 2 (Concrete Strength)
 
@@ -100,7 +100,9 @@ par(mfrow = c(1, 2))
 with(concrete, interaction.plot(curing, cement, strength, lwd = 2, col = 1:4))
 with(concrete, interaction.plot(cement, curing, strength, lwd = 2, col = 1:3))
 ```
+
 \newline
+
 The obvious indication of interaction would be lines that cross while heading in different directions. Here we don’t see that, but the lines aren’t strictly parallel, and there is some overlap on the right panel. 
 
 *ANOVA*
@@ -294,32 +296,37 @@ sim_anova2 = function(n = 10, mu_a = 0, mu_b = 0, mu_c = 0, sigma = 1, stat = TR
 
 y = c(0)
 x = c(0)
-for (i in 1:100){
-  p_vals = replicate(n = 1000, sim_anova2(n=i,mu_a = -1, mu_b = 0, mu_c = 1, 
-                                     sigma = 1, stat = FALSE))
-  y = c(y,mean(p_vals < 0.0025))
+for (i in 2:100){
+  p_vals = replicate(n = 500, sim_anova2(n=i,mu_a = -1, mu_b = 0, mu_c = 1,sigma = 1, stat = FALSE))
+  #print(mean(p_vals < 0.05))
+  y = c(y,mean(p_vals < 0.05))
   if(is.na(y[i])){
     y[i] = 0
   }
   x=c(x,i)
   if(y[i]>0.9){
-    print(i);
+    #print(i);
     break;
   }
   
 }
 
 
-plot(x[2:length(x)],y[2:length(x)],type="n", main="Various Sample sizes vs Mean p-val", xlab = "Size of sample", ylab = "Mean p-val",xaxt="n",yaxt="n")
+plot(x[2:length(x)],y[2:length(x)],type="n", main="Power vs Sample Size", xlab = "Size of sample", ylab = "Power",xaxt="n",yaxt="n")
 axis(1, at = x[2:length(x)], las=2)
 axis(2, at = y[2:length(x)], las=2)
 lines(x[2:length(x)],y[2:length(x)],col="green",lwd=2.5)
 abline(h=0.9,lty=2)
 abline(v=i-1,lty=2)
+abline(v=i,lty=2)
 
 ```
 
-We observe that for sample size = 13, we get a p-val greater than 0.9; thus 13 is the chosen sample size.
+
+\\
+Note: mean p-val at sample size = 1 is NA.
+
+We observe that for sample size = 8, we get atleast 90% confidence; thus 8 is the chosen sample size.
 
 
 ## Exercise 5 (Balanced Design, Power)
@@ -347,7 +354,7 @@ Calculate the power for each of the possible placements of the replicates with $
 Before performing the simulations, set a seed value equal to **your** birthday, as was done in the previous homework assignments.
 
 ```{r}
-birthday = 19910929
+birthday = 19920120
 set.seed(birthday)
 ```
 
@@ -386,15 +393,12 @@ x = c(1,2,3,4,5,6,7,8,9)
 
 for (a in x){
   b = 10-a;
-  p_vals = replicate(n = 500, sim_anova(mu_a = 0, mu_b = 2, n_a = a, n_b = b,
-                                     sigma = 1, stat = FALSE))
+  p_vals = replicate(n = 500, sim_anova(mu_a = 0, mu_b = 2, n_a = a, n_b = b,sigma = 1, stat = FALSE))
  
-  
-  mean_p_vals[a]=mean(p_vals < 0.0025)
- 
+  mean_p_vals[a]=mean(p_vals < 0.05)
 }
 
-plot(x,mean_p_vals,type="n", main="Various Sample size combinations vs Mean p-val", xlab = "Size of one sample, other's size = 10 - label", ylab = "Mean p-val",xaxt="n")
+plot(x,mean_p_vals,type="n", main="Power vs Balance", xlab = "Size of one sample, other's size = 10 - label", ylab = "Power",xaxt="n")
 axis(1, at = x, las=2)
 lines(x,mean_p_vals,col="green",lwd=2.5)
 abline(v =5 ,lty = 2)
