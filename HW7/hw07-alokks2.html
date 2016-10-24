@@ -153,20 +153,19 @@ summary(cookies_aov)</code></pre>
 ## Residuals   15    870      58                 
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-<p>We notice that p-value of this test is significant (&gt;0.05), thus we fail to reject the null hypothesis for 0.10 significance level. And we fail to conclude if recipies had any effect on ratings. A small F-value suggests that there is a lot variance inside samples, even though we can see there is difference between means across samples.</p>
-<p>Lets do pairwise t-tests</p>
-<pre class="r"><code>with(cookies, pairwise.t.test(rating, brand, p.adj = &quot;none&quot;))</code></pre>
-<pre><code>## 
-##  Pairwise comparisons using t tests with pooled SD 
+<p>We notice that p-value of this test is not significant (&lt;0.1), thus reject the null hypothesis for 0.10 significance level. And can say that recipies have an impact on ratings.</p>
+<pre class="r"><code>TukeyHSD(cookies_aov, conf.level = 0.9)</code></pre>
+<pre><code>##   Tukey multiple comparisons of means
+##     90% family-wise confidence level
 ## 
-## data:  rating and brand 
+## Fit: aov(formula = rating ~ brand, data = cookies)
 ## 
-##   A    B   
-## B 0.66 -   
-## C 0.09 0.04
-## 
-## P value adjustment method: none</code></pre>
-<p>We can only say that recipe B and C are different; with p-value less than 0.05; and we see that we could reject the null hypothesis; and since C has the highest mean, I would choose C.</p>
+## $brand
+##     diff      lwr    upr  p adj
+## B-A   -2 -11.7617  7.762 0.8930
+## C-A    8  -1.7617 17.762 0.1970
+## C-B   10   0.2383 19.762 0.0908</code></pre>
+<p>We can see that, for alpha = 0.1, only B and C have different means and since C has higher mean; I would choose C.</p>
 </div>
 <div id="exercise-2-concrete-strength" class="section level2">
 <h2>Exercise 2 (Concrete Strength)</h2>
@@ -319,7 +318,7 @@ with(rats, interaction.plot(protein, source, gain, lwd = 2, col = 1:3))</code></
 ## Residuals      54  14615     271                 
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-<p>Using an alpha of 0.05 the ANOVA test finds that the interaction is significant, so we use the interaction model here.</p>
+<p>Using an alpha of 0.1 the ANOVA test finds that the interaction is significant, so we use the interaction model here.</p>
 <p><em>Estimates</em></p>
 <p>Estimated means for each of 2x3 factor combinations.</p>
 <pre class="r"><code>rats_int   = aov(gain ~ source * protein, data = rats) # interaction model

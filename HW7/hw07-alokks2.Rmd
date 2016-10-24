@@ -34,14 +34,14 @@ cookies_aov = aov(rating ~ brand, data = cookies)
 summary(cookies_aov)
 ```
 
-We notice that p-value of this test is significant (>0.05), thus we fail to reject the null hypothesis for 0.10 significance level. And we fail to conclude if recipies had any effect on ratings. A small F-value suggests that there is a lot variance inside samples, even though we can see there is difference between means across samples.
+We notice that p-value of this test is not significant (<0.1), thus  reject the null hypothesis for 0.10 significance level. And can say that recipies have an impact on ratings.
 
-Lets do pairwise t-tests
+
 
 ```{r}
-with(cookies, pairwise.t.test(rating, brand, p.adj = "none"))
+TukeyHSD(cookies_aov, conf.level = 0.9)
 ```
-We can only say that recipe B and C are different; with p-value less than 0.05; and we see that we could reject the null hypothesis; and since C has the highest mean, I would choose C.
+We can see that, for alpha = 0.1, only B and C have different means and since C has higher mean; I would choose C.
 
 ## Exercise 2 (Concrete Strength)
 
@@ -204,7 +204,7 @@ There is an obvious indication of interaction as lines cross while heading in di
 ```{r}
 summary(aov(gain~source * protein, data = rats))
 ```
-Using an  alpha  of  0.05 the ANOVA test finds that the interaction is significant, so we use the interaction model here.
+Using an  alpha  of  0.1 the ANOVA test finds that the interaction is significant, so we use the interaction model here.
 
 *Estimates*
 
