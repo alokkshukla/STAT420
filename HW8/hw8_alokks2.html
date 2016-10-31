@@ -340,10 +340,9 @@ anova(days_add,days_mix2)</code></pre>
 ##        -1.48978043         0.00009088        -0.11459320         0.00008998 
 ## Pressure:Racewhite 
 ##        -0.00437443</code></pre>
-<pre class="r"><code>patient1 = data.frame(Charges=2000,Pressure=80,Care=&quot;high&quot;,Race=&quot;white&quot;)
-patient2 = data.frame(Charges=2000,Pressure=81,Care=&quot;high&quot;,Race=&quot;white&quot;)
-mean(predict(days_mix2,data=patient2)-predict(days_mix2,data=patient1))</code></pre>
-<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>coef(days_mix2)[&quot;Pressure&quot;]+coef(days_mix2)[&quot;Pressure:Racewhite&quot;]</code></pre>
+<pre><code>## Pressure 
+##   0.1424</code></pre>
 <p>Meaning, there wont be any increase in number of days.</p>
 <p><strong>(f)</strong> Find a model using the four predictors that we have been considering that is more flexible than the model in <strong>(d)</strong> and that is also statistically significant as compared to the model in <strong>(d)</strong> at a significance level of <span class="math inline">\(\alpha = 0.01\)</span>.</p>
 <pre class="r"><code>days_int = lm(Days~Charges*Pressure*Care*Race,data=hospital)
@@ -467,30 +466,30 @@ summary(lm(values ~ groups, data = ex4))</code></pre>
 ## 
 ## Residuals:
 ##    Min     1Q Median     3Q    Max 
-## -5.555 -2.274 -0.921  2.690  7.150 
+## -3.588 -1.524 -0.368  0.906  4.078 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)    9.317      1.355    6.88  7.6e-06 ***
-## groupsB       -0.846      1.916   -0.44     0.67    
+## (Intercept)    8.811      0.795   11.09  2.6e-08 ***
+## groupsB        1.622      1.124    1.44     0.17    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 3.83 on 14 degrees of freedom
-## Multiple R-squared:  0.0137, Adjusted R-squared:  -0.0567 
-## F-statistic: 0.195 on 1 and 14 DF,  p-value: 0.666</code></pre>
+## Residual standard error: 2.25 on 14 degrees of freedom
+## Multiple R-squared:  0.13,   Adjusted R-squared:  0.0673 
+## F-statistic: 2.08 on 1 and 14 DF,  p-value: 0.171</code></pre>
 <pre class="r"><code>t.test(values ~ groups, data = ex4, var.equal = TRUE)</code></pre>
 <pre><code>## 
 ##  Two Sample t-test
 ## 
 ## data:  values by groups
-## t = 0.44, df = 14, p-value = 0.7
+## t = -1.4, df = 14, p-value = 0.2
 ## alternative hypothesis: true difference in means is not equal to 0
 ## 95 percent confidence interval:
-##  -3.264  4.956
+##  -4.0326  0.7884
 ## sample estimates:
 ## mean in group A mean in group B 
-##           9.317           8.471</code></pre>
+##           8.811          10.433</code></pre>
 <p>We use <code>lm()</code> to test</p>
 <p><span class="math display">\[
 H_0: \beta_1 = 0
@@ -519,9 +518,25 @@ tt_p = rep(0, num_sims)</code></pre>
 </ul>
 <p>The variable <code>num_sims</code> controls how many times we will repeat this process, which we have chosen to be <code>100</code>.</p>
 <p><strong>(a)</strong> Set a seed equal to your UIN. Then write code that repeats the above process <code>100</code> times. Each time, store the appropriate values in <code>lm_t</code>, <code>lm_p</code>, <code>tt_t</code>, and <code>tt_p</code>. Specifically, each time you should use <code>ex4$values = rnorm(n, mean = 10, sd = 3)</code> to update the data. The grouping will always stay the same.</p>
+<pre class="r"><code>library(&quot;broom&quot;)
+UIN = 658325691
+set.seed(UIN)
+for(i in 1:num_sims){
+  ex4$values = rnorm(n, mean = 10, sd = 3)
+  lm_t[i] = glance(lm(formula = values ~ groups, data = ex4))$statistic
+  lm_p[i] = glance(lm(formula = values ~ groups, data = ex4))$p.value
+  tt_t[i] = glance(t.test(values ~ groups, data = ex4, var.equal = TRUE))$statistic
+  tt_p[i] = glance(t.test(values ~ groups, data = ex4, var.equal = TRUE))$p.value
+}</code></pre>
 <p><strong>(b)</strong> Report the value obtained by running <code>mean(lm_t == tt_t)</code>, which tells us what proportion of the test statistics are equal. The result may be extremely surprising!</p>
+<pre class="r"><code>mean(lm_t == tt_t)</code></pre>
+<pre><code>## [1] 0</code></pre>
 <p><strong>(c)</strong> Report the value obtained by running <code>mean(lm_p == tt_p)</code>, which tells us what proportion of the p-values are equal. The result may be extremely surprising!</p>
+<pre class="r"><code>mean(lm_p == tt_p)</code></pre>
+<pre><code>## [1] 0.17</code></pre>
 <p><strong>(d)</strong> If you have done everything correctly so far, your answers to the last two parts won’t indicate the equivalence we want to show! What the heck is going on here? The first issue is one of using a computer to do calculations. When a computer checks for equality, it demands <strong>equality</strong>; nothing can be different. However, when a computer performs calculations, it can only do so with a certain level of precision. So if we calculate two quantities we know to be analytically equal, they can differ numerically. Instead of <code>mean(lm_p == tt_p)</code> run <code>all.equal(lm_p, tt_p)</code>. This will perform a similar calculation, but with a very small error tolerance for each equality. What is the result of running this code? What does it mean?</p>
+<pre class="r"><code>all.equal(lm_p, tt_p)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
 <p><strong>(e)</strong> Your answer in <strong>(d)</strong> should now make much more sense. Then what is going on with the test statistics? Take a look at the values stored in <code>lm_t</code> and <code>tt_t</code>. What do you notice? Is there a relationship between the two? Can you explain why this is happening?</p>
 </div>
 </div>
