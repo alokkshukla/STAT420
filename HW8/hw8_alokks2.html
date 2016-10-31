@@ -466,30 +466,30 @@ summary(lm(values ~ groups, data = ex4))</code></pre>
 ## 
 ## Residuals:
 ##    Min     1Q Median     3Q    Max 
-## -3.588 -1.524 -0.368  0.906  4.078 
+## -5.516 -1.857  0.205  2.118  4.017 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)    8.811      0.795   11.09  2.6e-08 ***
-## groupsB        1.622      1.124    1.44     0.17    
+## (Intercept)   10.761      1.075   10.01  9.3e-08 ***
+## groupsB       -0.369      1.521   -0.24     0.81    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 2.25 on 14 degrees of freedom
-## Multiple R-squared:  0.13,   Adjusted R-squared:  0.0673 
-## F-statistic: 2.08 on 1 and 14 DF,  p-value: 0.171</code></pre>
+## Residual standard error: 3.04 on 14 degrees of freedom
+## Multiple R-squared:  0.00419,    Adjusted R-squared:  -0.0669 
+## F-statistic: 0.0589 on 1 and 14 DF,  p-value: 0.812</code></pre>
 <pre class="r"><code>t.test(values ~ groups, data = ex4, var.equal = TRUE)</code></pre>
 <pre><code>## 
 ##  Two Sample t-test
 ## 
 ## data:  values by groups
-## t = -1.4, df = 14, p-value = 0.2
+## t = 0.24, df = 14, p-value = 0.8
 ## alternative hypothesis: true difference in means is not equal to 0
 ## 95 percent confidence interval:
-##  -4.0326  0.7884
+##  -2.893  3.631
 ## sample estimates:
 ## mean in group A mean in group B 
-##           8.811          10.433</code></pre>
+##           10.76           10.39</code></pre>
 <p>We use <code>lm()</code> to test</p>
 <p><span class="math display">\[
 H_0: \beta_1 = 0
@@ -523,21 +523,28 @@ UIN = 658325691
 set.seed(UIN)
 for(i in 1:num_sims){
   ex4$values = rnorm(n, mean = 10, sd = 3)
-  lm_t[i] = glance(lm(formula = values ~ groups, data = ex4))$statistic
-  lm_p[i] = glance(lm(formula = values ~ groups, data = ex4))$p.value
+  lm_t[i] = sqrt(glance(lm(formula = values ~ groups, data = ex4))$statistic)
+  lm_p[i] = summary(lm(formula = values ~ groups, data = ex4))$coefficients[2,4]
   tt_t[i] = glance(t.test(values ~ groups, data = ex4, var.equal = TRUE))$statistic
   tt_p[i] = glance(t.test(values ~ groups, data = ex4, var.equal = TRUE))$p.value
 }</code></pre>
 <p><strong>(b)</strong> Report the value obtained by running <code>mean(lm_t == tt_t)</code>, which tells us what proportion of the test statistics are equal. The result may be extremely surprising!</p>
 <pre class="r"><code>mean(lm_t == tt_t)</code></pre>
-<pre><code>## [1] 0</code></pre>
+<pre><code>## [1] 0.02</code></pre>
 <p><strong>(c)</strong> Report the value obtained by running <code>mean(lm_p == tt_p)</code>, which tells us what proportion of the p-values are equal. The result may be extremely surprising!</p>
 <pre class="r"><code>mean(lm_p == tt_p)</code></pre>
-<pre><code>## [1] 0.17</code></pre>
+<pre><code>## [1] 0.19</code></pre>
 <p><strong>(d)</strong> If you have done everything correctly so far, your answers to the last two parts won’t indicate the equivalence we want to show! What the heck is going on here? The first issue is one of using a computer to do calculations. When a computer checks for equality, it demands <strong>equality</strong>; nothing can be different. However, when a computer performs calculations, it can only do so with a certain level of precision. So if we calculate two quantities we know to be analytically equal, they can differ numerically. Instead of <code>mean(lm_p == tt_p)</code> run <code>all.equal(lm_p, tt_p)</code>. This will perform a similar calculation, but with a very small error tolerance for each equality. What is the result of running this code? What does it mean?</p>
+<p><strong>Solution</strong></p>
 <pre class="r"><code>all.equal(lm_p, tt_p)</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <p><strong>(e)</strong> Your answer in <strong>(d)</strong> should now make much more sense. Then what is going on with the test statistics? Take a look at the values stored in <code>lm_t</code> and <code>tt_t</code>. What do you notice? Is there a relationship between the two? Can you explain why this is happening?</p>
+<p><strong>Solution</strong></p>
+<pre class="r"><code>all.equal(tt_t,lm_t)</code></pre>
+<pre><code>## [1] &quot;Mean relative difference: 1.289&quot;</code></pre>
+<pre class="r"><code>all.equal(abs(tt_t),abs(lm_t))</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Obviously, t.test computes x minus y in the paired t test. That’s why the sign of the estimate and the t value was reversed. Beyond that, the t value magnitudes are the same.</p>
 </div>
 </div>
 
