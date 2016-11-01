@@ -67,7 +67,7 @@ points(CO2 ~ horse, data = subset(epa,type=="Truck"), col =3, pch = 3)
 plotData()
 ```
 
-Black is for Both, Red for Car and Green for Truck.
+Black is for `Both`, Red for `Car` and Green for `Truck`.
 
 **(c)** Fit a SLR model with `CO2` as the response and only `horse` as the predictor. Recreate your plot and add the fitted regression line. Comment on how well this line models the data. Give an estimate for the average change in `CO2` for a one foot-pound per second increase in `horse` for a vehicle of type `truck`. Give a 95% prediction interval using this model for the `CO2` of a Subaru Impreza Wagon, which is a vehicle with 148 horsepower and is considered type `Both`. (Interestingly, the dataset gives the wrong drivetrain for most Subarus in this dataset, as they are almost all listed as `F`, when they are in fact all-wheel drive.)
 
@@ -79,7 +79,7 @@ plotData()
 abline(co2_horse_slr, lwd = 2, col = "magenta")
 ```
 
-The regresion line seems to be passing through average values for `Car` and for `Truck` and `Both` it seems to be underestimating a little.
+The regresion line seems to be underfitting `Truck` and overfitting `Car` and for `Both` it appears to be passing through average values.
 
 An estimate for the average change in `CO2` for a one foot-pound per second increase in `horse` for a vehicle of type `truck` according to this model is 
 
@@ -88,11 +88,11 @@ as.numeric(coef(co2_horse_slr)["horse"])
 ```
 
 And the 95% CI for Subaru Impreza Wagon predictions
+
 ```{r}
 newdata = data.frame(horse=148)
 predict(co2_horse_slr, newdata, interval="confidence") 
 ```
-
 
 
 
@@ -115,6 +115,8 @@ abline(int_Car, slope_all_type, col = 2, lty = 2, lwd = 2)
 abline(int_Truck, slope_all_type, col = 3, lty = 3, lwd = 2)
 
 ```
+
+These lines do a better job of modelling the data than the previous one;but still the slope for `Truck` seems a little less than required.
 
 An estimate for the average change in `CO2` for a one foot-pound per second increase in `horse` for a vehicle of type `truck` is 
 
@@ -148,6 +150,7 @@ abline(int_Both, slope_Both, col = 1, lty = 1, lwd = 2)
 abline(int_Car, slope_Car, col = 2, lty = 2, lwd = 2)
 abline(int_Truck, slope_Truck, col = 3, lty = 3, lwd = 2)
 ```
+The regression lines fit the data better than previous cases, with changed slopes.
 
 An estimate for the average change in `CO2` for a one foot-pound per second increase in `horse` for a vehicle of type `truck` is
 ```{r}
@@ -183,6 +186,7 @@ anova(co2_add, co2_int)
 ```
 Since the p-valuse is extremely low, the intercation model is preferred.
 
+
 ## Exercise 2 (Hospital SUPPORT Data)
 
 For this exercise we will use the data stored in [`hospital.csv`](hospital.csv). It contains a random sample of 580 seriously ill hospitalized patients from a famous study called "SUPPORT" (Study to Understand Prognoses Preferences Outcomes and Risks of Treatment). As the name suggests, the purpose of the study was to determine what factors affected or predicted outcomes, such as how long a patient remained in the hospital. The variables in the dataset are:  
@@ -205,15 +209,21 @@ For this exercise, we will use `Charges`, `Pressure`, `Care`, and `Race` to mode
 
 **(a)** Load the data, and check its structure using `str()`. Verify that `Care` and `Race` are factors; if not, coerce them to be factors. What are the levels of `Care` and `Race`?
 
+**Solution**
+
 ```{r}
 hospital = read.csv("hospital.csv")
 #str(hospital)
+class(hospital$Care)
+class(hospital$Race)
 levels(hospital$Care)
 levels(hospital$Race)
 ```
 
 
 **(b)** Fit an additive multiple regression model with `Days` as the response using `Charges`, `Pressure`, `Care`, and `Race` as predictors. What does `R` choose as the reference level for `Care` and `Race`?
+
+**Solution**
 
 ```{r}
 days_add = lm(Days~Charges+Pressure+Care+Race,data=hospital)
@@ -226,15 +236,19 @@ For `Care`, `high` is reference level and for `Race` it is `non-white`.
 
 **(c)** Fit a multiple regression model with `Days` as the response. Use the main effects of `Charges`, `Pressure`, `Care`, and `Race`, as well as the interaction of `Care` with each of the numeric predictors as predictors. (that is, the interaction of `Care` with `Charges` and the interaction of `Care` with `Pressure`). Use a statistical test to compare this model to the additive model using a significance level of $\alpha = 0.01$. Which do you prefer?
 
+**Solution**
+
 ```{r}
 days_mix = lm(Days~Charges+Pressure+Care+Race+Care:Charges+Care:Pressure,data=hospital)
 anova(days_add,days_mix)
 ```
 
-For a significance level of `0.01`; the mixture model is better.
+For a significance level of `0.01`; the mixture model is slightly better.
 
 
 **(d)** Fit a multiple regression model with `Days` as the response. Use the predictors from the model in **(c)** as well as the interaction of `Race` with each of the numeric predictors. (that is, the interaction of `Race` with `Charges` and the interaction of `Race` with `Pressure`). Use a statistical test to compare this model to the additive model using a significance level of $\alpha = 0.01$. Which do you prefer?
+
+**Solution**
 
 ```{r}
 days_mix2 = lm(Days~Charges+Pressure+Care+Race+Care:Charges+Care:Pressure+Race:Charges+Race:Pressure,data=hospital)
@@ -245,11 +259,15 @@ Here, the p-val is even more insignificant, so we would prefer this one.
 
 **(e)** Using the model in **(d)**, give an estimate of the change in average `Days` for a one-unit increase in `Pressure` for a `"white"` patient that required a high level of care.
 
+**Solution**
+
+The estimate would be
+
 ```{r}
-coef(days_mix2)
-coef(days_mix2)["Pressure"]+coef(days_mix2)["Pressure:Racewhite"]
+
+as.numeric(coef(days_mix2)["Pressure"]+coef(days_mix2)["Pressure:Racewhite"])
 ```
-Meaning, there wont be any increase in number of days.
+
 
 **(f)** Find a model using the four predictors that we have been considering that is more flexible than the model in **(d)** and that is also statistically significant as compared to the model in **(d)** at a significance level of $\alpha = 0.01$.
 
@@ -297,6 +315,9 @@ where
 
 Report the estimated coefficients of the model.
 
+
+**Solution**
+
 ```{r}
 fish = read.csv("fish.csv")
 fish_int = lm(Weight~Length1*HeightPct*WidthPct,data=fish)
@@ -318,6 +339,8 @@ Use a statistical test to compare this model with the previous. Report the follo
 - A statistical decision using a significance level of $\alpha = 0.05$
 - Which model you prefer
 
+**Solution**
+
 ```{r}
 anova(fish_smaller,fish_int)
 ```
@@ -325,15 +348,26 @@ anova(fish_smaller,fish_int)
 
 The null hypothesis is 
 
-\beta_4 = \beta_5 =  \beta_7 = 0
+$\beta_4 = \beta_5 =  \beta_7 = 0$
 
 And the alternate is
 
-\beta_4 != 0, \beta_5 != 0 and \beta_7 != 0
+$\beta_4 != 0 or \beta_5 != 0$ or $\beta_7 != 0$
+
+- The value of the test statistic is `16.367`.
+
+- The p-value of the test is `2.972e-09`.
+
+- At significance level of $\alpha = 0.05$, we reject null hypothesis and find the interactions significant.
+
+- The Interaction model should be preferred.
+
+
 
 **(c)** Give an expression based on the model in **(a)** for the true change in average weight for a 1 cm increase in `Length1` for a fish with a `HeightPct` of 20 and a `WidthPct` of 10.
 
 **Solution**
+
 ```{r}
 coef(fish_int)["Length1"] + coef(fish_int)["Length1:HeightPct"]*20 + coef(fish_int)["Length1:WidthPct"]*10 + coef(fish_int)["Length1:HeightPct:WidthPct"]*20*10
 ```
@@ -421,7 +455,8 @@ UIN = 658325691
 set.seed(UIN)
 for(i in 1:num_sims){
   ex4$values = rnorm(n, mean = 10, sd = 3)
-  lm_t[i] = sqrt(glance(lm(formula = values ~ groups, data = ex4))$statistic)
+  #lm_t[i] = sqrt(glance(lm(formula = values ~ groups, data = ex4))$statistic)
+  lm_t[i] = summary(lm(formula = values ~ groups, data = ex4))$coefficients[2,3]
   lm_p[i] = summary(lm(formula = values ~ groups, data = ex4))$coefficients[2,4]
   tt_t[i] = glance(t.test(values ~ groups, data = ex4, var.equal = TRUE))$statistic
   tt_p[i] = glance(t.test(values ~ groups, data = ex4, var.equal = TRUE))$p.value
@@ -460,6 +495,11 @@ all.equal(lm_p, tt_p)
 all.equal(tt_t,lm_t)
 all.equal(abs(tt_t),abs(lm_t))
 ```
-Obviously, t.test computes x minus y in the paired t test. That's why the sign of the estimate and the t value was reversed. Beyond that, the t value magnitudes are the same.
+
+From the `summary(lm(formula = values ~ groups, data = ex4))`, it is clear that `A` is chosen as the reference group; and `(Intercept)` is its mean's estimate; the following coeffecients are the differences between means of those groups and the first mean i.e. the `(Intercept)` estimate; essentially we are doing mean(A)-mean(B) in every case; and the t-val is nothing but that divided by `Std. Error`.
+
+In `t.test(..)` the `t` value is calculated with use of the value thats obtained by substracting the mean of group `B` from from mean of group `A`; while in `lm()` since `A` is chosen as base group, the subtraction is always done from the `(Intercept)` (estimate for mean(A)); thus the signs are reversed.
+
+In simpler terms; with `lm()`; `A` (lexicographic order) is chosen as base group and in calculating t-val; mean(A)-mean(B) is used; while with `t.test()`; `A` (lexicographic order) is chosen as fisrt group and we do second - first i.e. mean(B)-mean(A) for t-val calculation; leading to opposite signs.
 
 
