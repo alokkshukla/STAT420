@@ -1,9 +1,12 @@
 ---
-title: 'STAT 420: Homework 09'
-author: "Fall 2016, Dalpiaz"
-date: 'Due: Monday, November 7 by 11:59 PM CDT'
+title: 'STAT 420: Homeeork 9'
+author: "Alok K. Shukla ( alokks2 )"
+date: "11/6/2016"
 output:
   html_document:
+    theme: readable
+    toc: yes
+  pdf_document:
     toc: yes
 ---
 
@@ -11,31 +14,32 @@ output:
 options(scipen = 1, digits = 4, width = 80)
 ```
 
-
-# Directions
-
-Students are encouraged to work together on homework using the discussion boards. However, sharing, copying, or providing any part of a homework solution or code is an infraction of the University's rules on academic integrity. Any violation will be punished as severely as possible.
-
-- Your assignment must be submitted through Coursera. You are required to upload one `.zip` file, named `hw09_yourNetID.zip`, which contains:
-    - Your RMarkdown file which should be saved as `hw09_yourNetID.Rmd`. For example `hw09_dalpiaz2.Rmd`.
-    - The result of knitting your RMarkdown file as `hw09_yourNetID.html`. For example `hw09_dalpiaz2.html`.
-    - Any outside data provided as a `.csv` file used for the homework.
-    - This will roughly match the `.zip` provided.
-- Your resulting `.html` file will be considered a "report" which is the material that will determine the majority of your grade. Be sure to visibly include all `R` code and output that is relevant to answering the exercises. (You do not need to include irrelevant code you tried that resulted in error or did not answer the question correctly.)
-- You are granted an unlimited number of submissions, but only the last submission *before* the deadline will be viewed and graded.
-- If you use [this `.Rmd` file as a template](hw01-assign.Rmd), be sure to remove the quotation, directions section, and consider removing `eval = FALSE` from any code chunks provided (if you would like to run that code as part of your assignment).
-- Your `.Rmd` file should be written such that, when stored in a folder with any data you are asked to import, it will knit properly without modification. If your `.zip` file is organized properly, this should not be an issue.
-- Unless otherwise stated, you may use `R` for each of the exercises.
-- Be sure to read each exercise carefully!
-- Include your name and NetID in the final document, not only in your filenames.
-
-# Assignment
+# Assignment Solutions
 
 ## Exercise 1 (Writing Functions)
 
 **(a)** Write a function that takes as input a model object (variable) fit via `lm()` and outputs a fitted versus residuals plot. Also, create arguments `pointcol` and `linecol`, which control the point and line colors, respectively. Code the plot to add a horizontal line at $y = 0$, and label the $x$-axis "Fitted" and the $y$-axis "Residuals".
 
+**Solution**
+
+```{r}
+fitVresPlot = function(fit,pointcol="dodgerblue",linecol="darkorange"){
+  plot(fitted(fit), resid(fit), col = pointcol, xlab = "Fitted", ylab = "Residuals")
+  abline(h = 0, col = linecol, lwd = 2)
+}
+```
+
+
 **(b)** Write a function that takes as input a model fit via `lm()` and plots a Normal Q-Q plot of the residuals. Also, create arguments `pointcol` and `linecol`, which control the point and line colors, respectively. Code the plot to add the line from `qqline()`.
+
+**Solution**
+
+```{r}
+QQPlot = function(fit,pointcol="dodgerblue",linecol="darkorange"){
+  qqnorm(resid(fit), main = "Normal Q-Q Plot", col = pointcol)
+  qqline(resid(fit), col = linecol, lwd = 2)
+}
+```
 
 **(c)** Test your two functions above on the `test_fit` model. For both functions, specify point and line colors that are not black.
 
@@ -45,6 +49,14 @@ test_data = data.frame(x = runif(n = 20, min = 0, max = 10),
                        y = rep(x = 0, times = 20))
 test_data$y = with(test_data, 5 + 2 * x + rnorm(n = 20))
 test_fit = lm(y ~ x, data = test_data)
+```
+
+**Solution**
+
+```{r}
+par(mfrow=c(2,1))
+fitVresPlot(test_fit,"dodgerblue","darkorange")
+QQPlot(test_fit,"dodgerblue","darkorange")
 ```
 
 ## Exercise 2 (Swiss Fertility Data)
@@ -57,21 +69,143 @@ library(faraway)
 
 **(a)** Fit an additive multiple regression model with `Fertility` as the response and the remaining variables in the `swiss` dataset as predictors. Output the estimated regression coefficients for this model.
 
+**Solution**
+
+```{r}
+add = lm(Fertility~.,data=swiss)
+coef(add)
+```
+
 **(b)** Check the constant variance assumption for this model. Do you feel it has been violated? Justify your answer.
+
+**Solution**
+
+```{r}
+#install.packages("lmtest")
+library(lmtest)
+bptest(add)
+```
+
+We see a large p-value, so we do not reject the null hypothesis of constant variance; we can check that visually now.
+
+```{r}
+fitVresPlot(add)
+```
+
+Here we see that at every fitted value, the spread of the residuals should be roughly the same, thus the constant variance assumption is valid.
 
 **(c)** Check the normality assumption for this model. Do you feel it has been violated? Justify your answer.
 
+**Solution**
+
+```{r}
+shapiro.test(resid(add))
+```
+
+We see a large p-val, thus we can not reject the null-hypothesis of residuals follwoing a normal distribution. We can confirm that with Q-Q plot visually
+
+```{r}
+QQPlot(add)
+```
+We see a good normal fit.
+
 **(d)** Check for any high leverage observations. Report any observations you determine to have high leverage.
+
+**Solution**
+
+```{r}
+swiss[hatvalues(add) > 2 * mean(hatvalues(add)),]
+```
 
 **(e)** Check for any influential observations. Report any observations you determine to be influential.
 
+**Solution**
+
+```{r}
+swiss[cooks.distance(add)>4 / length(cooks.distance(add)),]
+```
+
 **(f)** Refit the additive multiple regression model without any points you identified as influential. Compare the coefficients of this fitted model to the previously fitted model.
 
+**Solution**
+
+```{r}
+good_swiss=swiss[cooks.distance(add)<=4 / length(cooks.distance(add)),]
+better_add = lm(Fertility~.,data=good_swiss)
+coef(better_add)-coef(add)
+```
+
+We find that all of the coeffecients except `Infant.Mortality` were being overestimated due to those `5` influential observations.
+
+
 **(g)** Create a data frame that stores the observations that were "removed" because they were influential. Use the two models you have fit to make predictions with these observations. Comment on the difference between these two sets of predictions.
+
+**Solution**
+
+```{r}
+influential = swiss[cooks.distance(add)>4 / length(cooks.distance(add)),]
+predict(add,newdata = influential)-predict(better_add,newdata = influential)
+predict(add,newdata = influential)-influential$Fertility
+predict(better_add,newdata = influential)-influential$Fertility
+```
+We find that predictions with the influential points considered
 
 ## Exercise 3 (Concrete, Again)
 
 Return to the [concrete data](concrete.csv) from the ANOVA homework. Recall, we chose the additive model. Now that we see how ANOVA can be framed as a linear model, check for any violation of assumptions for this model.
+
+**Solution**
+
+```{r}
+concrete = read.csv("concrete.csv")
+mod = lm(strength~.,data=concrete)
+```
+
+
+- Constant variance ***OK***
+
+```{r}
+bptest(mod)
+```
+
+We see a large p-value, so we do not reject the null hypothesis of constant variance. 
+
+- Normally distribued residuals ***OK***
+
+```{r}
+shapiro.test(resid(mod)) 
+```
+We see a large p-val, thus we can not reject the null-hypothesis of residuals follwoing a normal distribution.
+
+- High leverage observations ***OK***
+
+```{r}
+sum(hatvalues(mod) > 2 * mean(hatvalues(mod)))
+```
+
+- Outliers ***NOT OKAY - 1 present***
+
+```{r}
+sum(abs(rstandard(mod)) > 2)
+```
+
+- Influential points ***NOT OKAY - 1 present***
+
+```{r}
+cd_mod = cooks.distance(mod)
+sum(cd_mod > 4 / length(cd_mod))
+```
+
+- Effect on estimates ***Insignificant***
+
+```{r}
+mod_fix = lm(strength ~ ., data = concrete, subset = cd_mod <= 4 / length(cd_mod))
+coef(mod_fix)-coef(mod)
+
+```
+
+We find that there isn’t much of a change in the coefficients as a results of removing the supposed influential points. So we are okay with using the linear model.
+
 
 ## Exercise 4 (Why Bother?)
 
@@ -124,7 +258,7 @@ shapiro.test(resid(fit_2))
 num_sims = 1000
 p_val_1 = rep(0, num_sims)
 p_val_2 = rep(0, num_sims)
-birthday = 19081014
+birthday = 19920120
 set.seed(birthday)
 ```
 
@@ -136,5 +270,28 @@ Repeat the above process of generating `y_1` and `y_2` as defined above, and fit
 
 using both models, in the appropriate variables defined above. (You do not need to use a data frame as we have in the past. Although, feel free to modify the code to instead use a data frame.)
 
+**Solution**
+
+```{r}
+for (i in 1:num_sims){
+  y_1 = 2 + x_1 + 0 * x_2 + rnorm(n = n, mean = 0, sd = 1)
+  y_2 = 2 + x_1 + 0 * x_2 + rnorm(n = n, mean = 0, sd = abs(x_2))
+  fit1 = lm(y_1 ~ x_1 + x_2)
+  fit2 = lm(y_2 ~ x_1 + x_2)
+  p_val_1[i] = summary(fit1)$coefficients[3,4]
+  p_val_2[i] = summary(fit2)$coefficients[3,4]
+}
+```
+
 **(b)** What proportion of the `p_val_1` values are less than 0.05? Less than 0.10? What proportion of the `p_val_2` values are less than 0.05? Less than 0.10? Briefly explain these results.
+
+**Solution**
+
+```{r}
+mean(p_val_1<0.05)
+mean(p_val_1<0.10)
+mean(p_val_2<0.05)
+mean(p_val_2<0.10)
+```
+
 
