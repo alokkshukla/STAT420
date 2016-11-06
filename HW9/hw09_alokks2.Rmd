@@ -63,8 +63,9 @@ QQPlot(test_fit,"dodgerblue","darkorange")
 
 For this exercise we will use the `swiss` data, which can be found in the `faraway` package. After loading the `faraway` package, use `?swiss` to learn about this dataset.
 
-```{r, message = FALSE, warning = FALSE}
+```{r, results='hide', message=FALSE, warning=FALSE}
 library(faraway)
+library(lmtest)
 ```
 
 **(a)** Fit an additive multiple regression model with `Fertility` as the response and the remaining variables in the `swiss` dataset as predictors. Output the estimated regression coefficients for this model.
@@ -81,8 +82,6 @@ coef(add)
 **Solution**
 
 ```{r}
-#install.packages("lmtest")
-library(lmtest)
 bptest(add)
 ```
 
@@ -135,7 +134,7 @@ better_add = lm(Fertility~.,data=good_swiss)
 coef(better_add)-coef(add)
 ```
 
-We find that all of the coeffecients except `Infant.Mortality` were being overestimated due to those `5` influential observations.
+We find that all of the coeffecients except `Infant.Mortality` were being overestimated due to those `5` influential observations; and these are significant differences.
 
 
 **(g)** Create a data frame that stores the observations that were "removed" because they were influential. Use the two models you have fit to make predictions with these observations. Comment on the difference between these two sets of predictions.
@@ -143,12 +142,16 @@ We find that all of the coeffecients except `Infant.Mortality` were being overes
 **Solution**
 
 ```{r}
-influential = swiss[cooks.distance(add)>4 / length(cooks.distance(add)),]
+influential = swiss[cooks.distance(add)>4/length(cooks.distance(add)),]
 predict(add,newdata = influential)-predict(better_add,newdata = influential)
+```
+
+```{r}
 predict(add,newdata = influential)-influential$Fertility
 predict(better_add,newdata = influential)-influential$Fertility
 ```
-We find that predictions with the influential points considered
+
+There's large residuals in both cases, with them being larger in case of `better_add` as it does a better job of fitting the good data and a poorer job of fitting the outliers.
 
 ## Exercise 3 (Concrete, Again)
 
@@ -170,7 +173,7 @@ bptest(mod)
 
 We see a large p-value, so we do not reject the null hypothesis of constant variance. 
 
-- Normally distribued residuals ***OK***
+- Normally distributed residuals ***OK***
 
 ```{r}
 shapiro.test(resid(mod)) 
@@ -294,4 +297,5 @@ mean(p_val_2<0.05)
 mean(p_val_2<0.10)
 ```
 
+We find that for model fitted with data that did not violate assumptions; there's a smaller percentage of estimates that reject the null hypothesis of $\beta_2$ being zero than with the one thats built with data violating assumptions. This is also what we'd expect.
 

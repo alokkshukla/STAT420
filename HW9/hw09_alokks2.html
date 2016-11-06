@@ -163,7 +163,8 @@ QQPlot(test_fit,&quot;dodgerblue&quot;,&quot;darkorange&quot;)</code></pre>
 <div id="exercise-2-swiss-fertility-data" class="section level2">
 <h2>Exercise 2 (Swiss Fertility Data)</h2>
 <p>For this exercise we will use the <code>swiss</code> data, which can be found in the <code>faraway</code> package. After loading the <code>faraway</code> package, use <code>?swiss</code> to learn about this dataset.</p>
-<pre class="r"><code>library(faraway)</code></pre>
+<pre class="r"><code>library(faraway)
+library(lmtest)</code></pre>
 <p><strong>(a)</strong> Fit an additive multiple regression model with <code>Fertility</code> as the response and the remaining variables in the <code>swiss</code> dataset as predictors. Output the estimated regression coefficients for this model.</p>
 <p><strong>Solution</strong></p>
 <pre class="r"><code>add = lm(Fertility~.,data=swiss)
@@ -174,14 +175,6 @@ coef(add)</code></pre>
 ##           0.1041           1.0770</code></pre>
 <p><strong>(b)</strong> Check the constant variance assumption for this model. Do you feel it has been violated? Justify your answer.</p>
 <p><strong>Solution</strong></p>
-<pre class="r"><code>#install.packages(&quot;lmtest&quot;)
-library(lmtest)</code></pre>
-<pre><code>## Loading required package: zoo</code></pre>
-<pre><code>## 
-## Attaching package: 'zoo'</code></pre>
-<pre><code>## The following objects are masked from 'package:base':
-## 
-##     as.Date, as.Date.numeric</code></pre>
 <pre class="r"><code>bptest(add)</code></pre>
 <pre><code>## 
 ##  studentized Breusch-Pagan test
@@ -236,10 +229,10 @@ coef(better_add)-coef(add)</code></pre>
 ##        -0.470597        -0.046084        -0.242156         0.180475 
 ##         Catholic Infant.Mortality 
 ##        -0.005647         0.280624</code></pre>
-<p>We find that all of the coeffecients except <code>Infant.Mortality</code> were being overestimated due to those <code>5</code> influential observations.</p>
+<p>We find that all of the coeffecients except <code>Infant.Mortality</code> were being overestimated due to those <code>5</code> influential observations; and these are significant differences.</p>
 <p><strong>(g)</strong> Create a data frame that stores the observations that were “removed” because they were influential. Use the two models you have fit to make predictions with these observations. Comment on the difference between these two sets of predictions.</p>
 <p><strong>Solution</strong></p>
-<pre class="r"><code>influential = swiss[cooks.distance(add)&gt;4 / length(cooks.distance(add)),]
+<pre class="r"><code>influential = swiss[cooks.distance(add)&gt;4/length(cooks.distance(add)),]
 predict(add,newdata = influential)-predict(better_add,newdata = influential)</code></pre>
 <pre><code>##  Porrentruy      Sierre   Neuchatel Rive Droite Rive Gauche 
 ##     -3.9397      0.5419     -2.3769     -3.5637     -3.2459</code></pre>
@@ -249,7 +242,7 @@ predict(add,newdata = influential)-predict(better_add,newdata = influential)</co
 <pre class="r"><code>predict(better_add,newdata = influential)-influential$Fertility</code></pre>
 <pre><code>##  Porrentruy      Sierre   Neuchatel Rive Droite Rive Gauche 
 ##      18.340     -15.863      -8.504      13.226      18.520</code></pre>
-<p>We find that predictions with the influential points considered</p>
+<p>There’s large residuals in both cases, with them being larger in case of <code>better_add</code> as it does a better job of fitting the good data and a poorer job of fitting the outliers.</p>
 </div>
 <div id="exercise-3-concrete-again" class="section level2">
 <h2>Exercise 3 (Concrete, Again)</h2>
@@ -268,7 +261,7 @@ mod = lm(strength~.,data=concrete)</code></pre>
 ## BP = 3.5, df = 4, p-value = 0.5</code></pre>
 <p>We see a large p-value, so we do not reject the null hypothesis of constant variance.</p>
 <ul>
-<li>Normally distribued residuals <strong><em>OK</em></strong></li>
+<li>Normally distributed residuals <strong><em>OK</em></strong></li>
 </ul>
 <pre class="r"><code>shapiro.test(resid(mod)) </code></pre>
 <pre><code>## 
@@ -361,19 +354,20 @@ set.seed(birthday)</code></pre>
   y_2 = 2 + x_1 + 0 * x_2 + rnorm(n = n, mean = 0, sd = abs(x_2))
   fit1 = lm(y_1 ~ x_1 + x_2)
   fit2 = lm(y_2 ~ x_1 + x_2)
-  p_val_1[i] = summary(fit_1)$coefficients[3,4]
-  p_val_2[i] = summary(fit_2)$coefficients[3,4]
+  p_val_1[i] = summary(fit1)$coefficients[3,4]
+  p_val_2[i] = summary(fit2)$coefficients[3,4]
 }</code></pre>
 <p><strong>(b)</strong> What proportion of the <code>p_val_1</code> values are less than 0.05? Less than 0.10? What proportion of the <code>p_val_2</code> values are less than 0.05? Less than 0.10? Briefly explain these results.</p>
 <p><strong>Solution</strong></p>
 <pre class="r"><code>mean(p_val_1&lt;0.05)</code></pre>
-<pre><code>## [1] 0</code></pre>
+<pre><code>## [1] 0.051</code></pre>
 <pre class="r"><code>mean(p_val_1&lt;0.10)</code></pre>
-<pre><code>## [1] 0</code></pre>
+<pre><code>## [1] 0.1</code></pre>
 <pre class="r"><code>mean(p_val_2&lt;0.05)</code></pre>
-<pre><code>## [1] 0</code></pre>
+<pre><code>## [1] 0.156</code></pre>
 <pre class="r"><code>mean(p_val_2&lt;0.10)</code></pre>
-<pre><code>## [1] 0</code></pre>
+<pre><code>## [1] 0.229</code></pre>
+<p>We find that for model fitted with data that did not violate assumptions; there’s a smaller percentage of estimates that reject the null hypothesis of <span class="math inline">\(\beta_2\)</span> being zero than with the one thats built with data violating assumptions. This is also what we’d expect.</p>
 </div>
 </div>
 
