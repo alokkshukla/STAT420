@@ -40,13 +40,31 @@ abline(life_fit,col="darkorange",lwd=2)
 <br/>
 Lets check assumptions
 
+- Linearity and Constant Variance
+
 ```{r}
-bptest(life_fit)
-shapiro.test(resid(life_fit))
+plot(fitted(life_fit), resid(life_fit), col = "dodgerblue", pch = 20, cex = 1.5, xlab = "Fitted", ylab = "Residuals",main="3 Degree")
+abline(h = 0, lty = 2, col = "orange", lwd = 2)
+```
+<br/>
+We find that neither linearity nor constant variance assumption is true since neither mean of residuals is roughly zero nor is the spread of residuals roughly same at all fitted points.
+
+- Normality of errors
+
+```{r}
+par(mfrow=c(1,2))
+hist(resid(life_fit),
+     xlab   = "Residuals",
+     main   = "Histogram of Residuals",
+     col    = "darkorange",
+     border = "dodgerblue")
+qqnorm(resid(life_fit), main = "Normal Q-Q Plot", col = "darkorange")
+qqline(resid(life_fit), col = "dodgerblue", lwd = 2)
 ```
 
-We find non-constant variance in residuals.
+<br/>
 
+The errors are also not normally distributed.
 
 
 **(b)** Fit higher order polynomial models of degree 3, 5, and 7. For each, plot a fitted versus residuals plot and comment on the constant variance assumption. Based on those plots, which of these three models do you think are acceptable? Use a statistical test(s) to compare the models you just chose. Based on the test, which is preferred? Check the normality assumption of this model. Identify any influential observations of this model.
@@ -80,16 +98,27 @@ We see a high p-val, so we will stick with `fit_5`.
 - Normality assumption
 
 ```{r}
-shapiro.test(resid(fit_5))
+par(mfrow=c(1,2))
+hist(resid(fit_5),
+     xlab   = "Residuals",
+     main   = "Histogram of Residuals",
+     col    = "darkorange",
+     border = "dodgerblue")
+qqnorm(resid(fit_5), main = "Normal Q-Q Plot", col = "darkorange")
+qqline(resid(fit_5), col = "dodgerblue", lwd = 2)
 ```
 
-We see a large p-val, thus we can not reject the null-hypothesis of residuals follwoing a normal distribution.
+<br/>
+
+The normality assumption seems to hold true.
 
 - Influential points
 
 ```{r}
 tvdoctor[cooks.distance(fit_5)> 4 / length(cooks.distance(fit_5)),]
 ```
+
+They are present.
 
 ## Exercise 2 (Brains)
 
@@ -103,23 +132,21 @@ library(MASS)
 
 **Solution**
 ```{r}
-mammals[which.max(mammals$body),1]
-mammals[which.min(mammals$body),1]
+range(mammals$body)
 ```
 
 **(b)** What are the smallest and largest brain weights in the dataset?
 
 **Solution**
 ```{r}
-mammals[which.max(mammals$brain),2]
-mammals[which.min(mammals$brain),2]
+range(mammals$brain)
 ```
 
 **(c)** Plot average brain weight $(y)$ versus average body weight $(x)$.
 
 **Solution**
 ```{r}
-plot(mammals$body,mammals$brain, col = "dodgerblue", pch = 20, cex = 1.5, xlab = "Average Body Weight", ylab = "Avaerage Brain Weight")
+plot(mammals$brain~mammals$body, col = "dodgerblue", pch = 20, cex = 1, xlab = "Average Body Weight", ylab = "Avaerage Brain Weight")
 ```
 
 
@@ -132,7 +159,7 @@ summary(slr)
 ```
 
 We find that the regression is significant.
-<br/>
+
 Lets see if this is an appropriate model.
 
 ```{r}
@@ -141,7 +168,20 @@ abline(h = 0, lty = 2, col = "orange", lwd = 2)
 ```
 <br/>
 
-The constant variation assumption is violated, thus inappropriate.
+The constant variation and linearity assumption is violated, lets check normality of error too.
+
+```{r}
+par(mfrow=c(1,2))
+hist(resid(slr),
+     xlab   = "Residuals",
+     main   = "Histogram of Residuals",
+     col    = "darkorange",
+     border = "dodgerblue")
+qqnorm(resid(slr), main = "Normal Q-Q Plot", col = "darkorange")
+qqline(resid(slr), col = "dodgerblue", lwd = 2)
+```
+<br/>
+Thats also invalid assumption so the model is inappropriate.
 
 - *the log model*
 
@@ -152,9 +192,8 @@ abline(h = 0, lty = 2, col = "orange", lwd = 2)
 ```
 
 
-<br/>
 
-The variance in this model is same on both sides.
+
 
 **(e)** Since the body weights do range over more than one order of magnitude and are strictly positive, we will use $\log(\text{body weight})$ as our *predictor*, with no further justification. Use the Box-Cox method to verify that $\log(\text{brain weight})$ is then a "recommended" transformation of the *response* variable. That is, verify that $\lambda = 0$ is among the "recommended" values of $\lambda$ when considering,
 
@@ -180,11 +219,15 @@ Using the Box-Cox method, we see that `λ = 0` is both in the interval, and extr
 **Solution**
 
 ```{r}
+par(mfrow=c(1,2))
 correct_model = lm(log(brain)~log(body),data=mammals)
-plot(log(brain) ~ log(body), data = mammals, col = "dodgerblue", pch = 20, cex = 1.5 )
+plot(log(brain) ~ log(body), data = mammals, col = "dodgerblue", pch = 20, cex = .5 )
 abline(correct_model, col = "darkorange", lwd = 2)
+plot(fitted(correct_model), resid(correct_model), col = "dodgerblue", pch = 20, cex = .5, xlab = "Fitted", ylab = "Residuals")
+abline(h = 0, lty = 2, col = "orange", lwd = 2)
 ```
 <br/>
+
 
 The linear relationship does seem appropriate here.
 
@@ -198,7 +241,12 @@ qqline(resid(correct_model), col = "dodgerblue", lwd = 2)
 
 <br/>
 
-Plot suggests that normality assumption is not violated.
+Plot suggests that normality assumption is not violated which is also confirmed by test.
+
+```{r}
+shapiro.test(resid(correct_model))
+```
+
 
 **(h)** Use the model from part **(f)** to predict the brain weight of a male Pikachu which, has a body weight of 13.4 pounds. (Pikachu would be mammals, right?) Construct a 99% prediction interval.
 
@@ -245,7 +293,7 @@ Create a fitted vs residuals plot for this model. Do you believe the constant va
 **Solution**
 
 ```{r}
-plot(fitted(co2_int), resid(co2_int), col = "dodgerblue", pch = 20, cex = 1.5, xlab = "Fitted", ylab = "Residuals")
+plot(fitted(co2_int), resid(co2_int), col = "dodgerblue", pch = 20, cex = .5, xlab = "Fitted", ylab = "Residuals")
 abline(h = 0, lty = 2, col = "orange", lwd = 2)
 ```
 
@@ -259,13 +307,33 @@ Looking at the plot, we can say that the constant variance assumption has been v
 ```{r}
 par(mfrow=c(1,2))
 co2_log = lm(log(CO2)~horse*type,data=epa2015)
-plot(fitted(co2_int), resid(co2_int), col = "dodgerblue", pch = 20, cex = 1.5, xlab = "Fitted", ylab = "Residuals")
+plot(fitted(co2_int), resid(co2_int), col = "dodgerblue", pch = 20, cex = .5, xlab = "Fitted", ylab = "Residuals")
 abline(h = 0, lty = 2, col = "orange", lwd = 2)
-plot(fitted(co2_log), resid(co2_log), col = "dodgerblue", pch = 20, cex = 1.5, xlab = "Fitted", ylab = "Residuals")
+plot(fitted(co2_log), resid(co2_log), col = "dodgerblue", pch = 20, cex = .5, xlab = "Fitted", ylab = "Residuals")
 abline(h = 0, lty = 2, col = "orange", lwd = 2)
 ```
 
 Constat variance assumption is not violated for the new model excpet for some points. Lets check other assumptions
+
+- Linearity
+
+Holds since the mean of residuals is roughly zero at most fitted points.
+
+- Normality
+
+```{r}
+par(mfrow=c(1,2))
+hist(resid(co2_log),
+     xlab   = "Residuals",
+     main   = "Histogram of Residuals",
+     col    = "darkorange",
+     border = "dodgerblue")
+qqnorm(resid(co2_log), main = "Normal Q-Q Plot", col = "darkorange")
+qqline(resid(co2_log), col = "dodgerblue", lwd = 2)
+```
+
+<br/>
+Plot suggests that it is violated which is also confirmed by test.
 
 ```{r}
 shapiro.test(resid(co2_log))
@@ -277,10 +345,10 @@ A very small p-val suggests the normality assumption is violated.
 
 ```{r}
 par(mfrow=c(1,2))
-co2_horse = lm(log(CO2)~horse*type+I(horse^4),data=epa2015)
-plot(fitted(co2_log), resid(co2_log), col = "dodgerblue", pch = 20, cex = 1.5, xlab = "Fitted", ylab = "Residuals")
+co2_horse = lm(log(CO2)~horse*type+I(horse^2),data=epa2015)
+plot(fitted(co2_log), resid(co2_log), col = "dodgerblue", pch = 20, cex = .5, xlab = "Fitted", ylab = "Residuals")
 abline(h = 0, lty = 2, col = "orange", lwd = 2)
-plot(fitted(co2_horse), resid(co2_horse), col = "dodgerblue", pch = 20, cex = 1.5, xlab = "Fitted", ylab = "Residuals")
+plot(fitted(co2_horse), resid(co2_horse), col = "dodgerblue", pch = 20, cex = .5, xlab = "Fitted", ylab = "Residuals")
 abline(h = 0, lty = 2, col = "orange", lwd = 2)
 
 ```
@@ -288,19 +356,56 @@ abline(h = 0, lty = 2, col = "orange", lwd = 2)
 Compared to previous, this model is better at not violating the constant variance assumption. 
 
 - Model assumptions
--- Constant variance
+-- Constant variance and Linearity
 
-```{r}
-bptest(co2_horse)
-```
+Holds true.
+
 
 -- Normality
+
+```{r}
+par(mfrow=c(1,2))
+hist(resid(co2_horse),
+     xlab   = "Residuals",
+     main   = "Histogram of Residuals",
+     col    = "darkorange",
+     border = "dodgerblue")
+qqnorm(resid(co2_horse), main = "Normal Q-Q Plot", col = "darkorange")
+qqline(resid(co2_horse), col = "dodgerblue", lwd = 2)
+```
+<br/>
+
+Doesn't hold true, also conformed by test.
+
 ```{r}
 shapiro.test(resid(co2_horse))
 ```
 
 
 **(d)** Perform further analysis of the model fit in part **(c)**. Can you find any violations of assumptions?
+
+**Solution**
+
+```{r}
+summary(co2_horse)
+```
+
+We find that the interaction terms are not very significant.
+
+- Influential points
+
+```{r}
+nrow(epa2015[cooks.distance(co2_horse)> 4 / length(cooks.distance(co2_horse)),])
+```
+
+Present.
+
+- Assumptions
+-- Linearity and Constant variance - OK
+-- Normality - Not OK
+
+(Already shown)
+
 
 ## Exercise 4 (Bigger Is Better?)
 
@@ -388,15 +493,31 @@ mean(rmse_slr<rmse_big)
 The `Big` model always has lower `RMSE`.
 
 **(c)** What proportion of the p-values are less than 0.05?
+
+**Solution**
+
 ```{r}
 mean(pval<0.05)
 ```
 
 Only a very small fraction of p-val is saying that the bigger model is significant.
 
+
 **(d)** Do you think bigger is better?
 
 **Solution**
 
-Bigger models are overfitting; not better.
+```{r}
+x = runif(n, 0 , 10)
+y = 3 - 4 * x + rnorm(n, 0 , 3)
+d =data.frame(cbind(x,y))
+library(ggplot2)
+ggplot(data = d, aes(x = x, y = y)) +
+  stat_smooth(method = "lm", se = FALSE, color = "green", formula = y ~ x) +
+  stat_smooth(method = "lm", se = FALSE, color = "blue", formula = y ~ poly(x, 10)) +
+  geom_point(colour = "black", size = 3)
+```
+
+<br/>
+Bigger models are overfitting; not necessarily better.
 

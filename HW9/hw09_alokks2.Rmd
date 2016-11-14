@@ -4,7 +4,8 @@ author: "Alok K. Shukla ( alokks2 )"
 date: "11/6/2016"
 output:
   html_document:
-    theme: readable
+    highlight: textmate
+    theme: spacelab
     toc: yes
   pdf_document:
     toc: yes
