@@ -252,9 +252,11 @@ shapiro.test(resid(correct_model))
 
 **Solution**
 ```{r}
-pikachu  = data.frame(body=13.4)
-predict(correct_model, pikachu, interval="prediction") 
+w = 13.4*0.453592
+pikachu  = data.frame(body=w)
+exp(predict(correct_model, pikachu, interval="prediction",level=0.99))
 ```
+Note: In kg.
 
 
 ## Exercise 3 (EPA Emissions Data, Redux)

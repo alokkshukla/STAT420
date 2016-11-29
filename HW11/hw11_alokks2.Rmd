@@ -15,6 +15,12 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(faraway)
+calc_loocv_rmse = function(model) {
+  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+}
+
 ```
 # Assignment Solutions
 
@@ -22,9 +28,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The data set `longley` from the `faraway` package contains macroeconomic data for predicting employment.
 
-```{r}
-library(faraway)
-```
+
 
 ```{r, eval = FALSE}
 View(longley)
@@ -421,7 +425,7 @@ Using the `prostate` dataset from the `faraway` package, fit a model with `lpsa`
 
 **Solution**
 
-```{r}
+```{r,message=FALSE,warning=FALSE}
 library(leaps)
 lpsa_mod = lm(lpsa ~ ., data = prostate)
 all_lpsa_mod = summary(regsubsets(lpsa ~ ., data = prostate))
@@ -468,10 +472,8 @@ coef(lpsa_mod_best_r2)
 
 **Solution**
 
-```{r,solution=TRUE}
-calc_loocv_rmse = function(model) {
-  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
-}
+```{r}
+
 (calc_loocv_rmse(lpsa_mod_best_aic))
 (calc_loocv_rmse(lpsa_mod_best_bic))
 (calc_loocv_rmse(lpsa_mod_best_r2))
