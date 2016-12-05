@@ -274,7 +274,15 @@ for(i in <span class="dv">1</span>:num_sim){
 }
 
 <span class="co">#Compare the rates between the two methods.</span>
-<span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
+<span class="kw">mean</span>(fp_aic_rate)</code></pre></div>
+<pre><code>## [1] 0.1842</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(fp_bic_rate)</code></pre></div>
+<pre><code>## [1] 0.04417</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(fn_aic_rate)</code></pre></div>
+<pre><code>## [1] 0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(fn_bic_rate)</code></pre></div>
+<pre><code>## [1] 0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
 <span class="kw">plot</span>(fp_aic_rate,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>,<span class="dt">col=</span><span class="st">&quot;dodgerblue&quot;</span>,<span class="dt">main=</span><span class="st">&quot;Orange: BIC, Blue: AIC&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;Model 1 Simulation#&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;FPR&quot;</span>)
 <span class="kw">lines</span>(fp_bic_rate,<span class="dt">col=</span><span class="st">&quot;orange&quot;</span>)
 <span class="kw">plot</span>(fn_aic_rate,<span class="dt">type=</span><span class="st">&quot;b&quot;</span>,<span class="dt">col=</span><span class="st">&quot;dodgerblue&quot;</span>,<span class="dt">main=</span><span class="st">&quot;Orange: BIC, Blue: AIC&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;Model 1 Simulation#&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;FNR&quot;</span>)
@@ -338,7 +346,15 @@ for(i in <span class="dv">1</span>:num_sim){
 }
 
 <span class="co">#Compare the rates between the two methods.</span>
-<span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
+<span class="kw">mean</span>(fp_aic_rate)</code></pre></div>
+<pre><code>## [1] 0.3033</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(fp_bic_rate)</code></pre></div>
+<pre><code>## [1] 0.1925</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(fn_aic_rate)</code></pre></div>
+<pre><code>## [1] 0.174</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(fn_bic_rate)</code></pre></div>
+<pre><code>## [1] 0.189</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
 <span class="kw">plot</span>(fp_aic_rate,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>,<span class="dt">col=</span><span class="st">&quot;dodgerblue&quot;</span>,<span class="dt">main=</span><span class="st">&quot;Orange: BIC, Blue: AIC&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;Model 2 Simulation#&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;FPR&quot;</span>)
 <span class="kw">lines</span>(fp_bic_rate,<span class="dt">col=</span><span class="st">&quot;orange&quot;</span>)
 <span class="kw">plot</span>(fn_aic_rate,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>,<span class="dt">col=</span><span class="st">&quot;dodgerblue&quot;</span>,<span class="dt">main=</span><span class="st">&quot;Orange: BIC, Blue: AIC&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;Model 2 Simulation#&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;FNR&quot;</span>)
@@ -395,9 +411,8 @@ for(i in <span class="dv">1</span>:num_sim){
 <li><code>Gender</code> - 0 = female, 1 = male</li>
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">body &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;body.csv&quot;</span>)
-<span class="kw">library</span>(leaps)</code></pre></div>
-<pre><code>## Warning: package 'leaps' was built under R version 3.3.2</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">calc_loocv_rmse =<span class="st"> </span>function(model) {
+<span class="kw">library</span>(leaps)
+calc_loocv_rmse =<span class="st"> </span>function(model) {
 <span class="kw">sqrt</span>(<span class="kw">mean</span>((<span class="kw">resid</span>(model) /<span class="st"> </span>(<span class="dv">1</span> -<span class="st"> </span><span class="kw">hatvalues</span>(model))) ^<span class="st"> </span><span class="dv">2</span>))
 }</code></pre></div>
 <p><strong>(a)</strong> Find a good model for <code>Weight</code> using only the skeletal variables as well as <code>Age</code>, <code>Height</code>, and <code>Gender</code>. You are not allowed to remove any data or transform the response.</p>
@@ -631,7 +646,7 @@ L50_int_3 =<span class="st"> </span><span class="kw">lm</span>(<span class="kw">
 ## W = 0.99, p-value = 0.1</code></pre>
 <p><strong>(b)</strong> Find a model for <code>log(L50)</code> that does not reject the Shapiro-Wilk test at <span class="math inline">\(\alpha = 0.01\)</span> and obtains an <strong>adjusted</strong> <span class="math inline">\(R^2\)</span> higher than 0.60. You may not remove any observations, but may consider transformations. Your model should use fewer than 20 <span class="math inline">\(\beta\)</span> parameters.</p>
 <p><strong>Solution</strong></p>
-<p>Model found in previous section satisifies bot conditions.</p>
+<p>Model found in previous section satisifies both conditions.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(L50_int_3)$adj.r.squared </code></pre></div>
 <pre><code>## [1] 0.6604</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">shapiro.test</span>(<span class="kw">resid</span>(L50_int_3))</code></pre></div>

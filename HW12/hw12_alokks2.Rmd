@@ -160,6 +160,10 @@ for(i in 1:num_sim){
 }
 
 #Compare the rates between the two methods.
+mean(fp_aic_rate)
+mean(fp_bic_rate)
+mean(fn_aic_rate)
+mean(fn_bic_rate)
 par(mfrow=c(1,2))
 plot(fp_aic_rate,type="l",col="dodgerblue",main="Orange: BIC, Blue: AIC",xlab="Model 1 Simulation#",ylab="FPR")
 lines(fp_bic_rate,col="orange")
@@ -232,6 +236,10 @@ for(i in 1:num_sim){
 }
 
 #Compare the rates between the two methods.
+mean(fp_aic_rate)
+mean(fp_bic_rate)
+mean(fn_aic_rate)
+mean(fn_bic_rate)
 par(mfrow=c(1,2))
 plot(fp_aic_rate,type="l",col="dodgerblue",main="Orange: BIC, Blue: AIC",xlab="Model 2 Simulation#",ylab="FPR")
 lines(fp_bic_rate,col="orange")
@@ -249,7 +257,7 @@ lines(fn_bic_rate,col="orange")
 
 2. FNR Comparison
 
-  The FNR for BIC has increased much more than FNR for AIC.
+  The FNR for BIC has increased more than FNR for AIC.
 
 3. Possible reason
 
