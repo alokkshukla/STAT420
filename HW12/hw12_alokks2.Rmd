@@ -1,0 +1,235 @@
+---
+title: 'STAT 420: Homework 12'
+author: "Alok K. Shukla (alokks2)"
+date: "12/04/2016"
+output:
+  html_document:
+    highlight: tango
+    theme: flatly
+    toc: yes
+  pdf_document:
+    fig_caption: yes
+    highlight: tango
+    toc: yes
+---
+
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+options(scipen = 1, digits = 4, width = 80)
+```
+
+
+# Directions
+
+Students are encouraged to work together on homework using the discussion boards. However, sharing, copying, or providing any part of a homework solution or code is an infraction of the University's rules on academic integrity. Any violation will be punished as severely as possible.
+
+- Your assignment must be submitted through Coursera. You are required to upload one `.zip` file, named `hw12_yourNetID.zip`, which contains:
+    - Your RMarkdown file which should be saved as `hw12_yourNetID.Rmd`. For example `hw12_dalpiaz2.Rmd`.
+    - The result of knitting your RMarkdown file as `hw12_yourNetID.html`. For example `hw12_dalpiaz2.html`.
+    - Any outside data provided as a `.csv` file used for the homework.
+    - This will roughly match the `.zip` provided.
+- Your resulting `.html` file will be considered a "report" which is the material that will determine the majority of your grade. Be sure to visibly include all `R` code and output that is relevant to answering the exercises. (You do not need to include irrelevant code you tried that resulted in error or did not answer the question correctly.)
+- You are granted an unlimited number of submissions, but only the last submission *before* the deadline will be viewed and graded.
+- If you use [this `.Rmd` file as a template](hw12-assign.Rmd), be sure to remove the quotation, directions section, and consider removing `eval = FALSE` from any code chunks provided (if you would like to run that code as part of your assignment).
+- Your `.Rmd` file should be written such that, when stored in a folder with any data you are asked to import, it will knit properly without modification. If your `.zip` file is organized properly, this should not be an issue.
+- Unless otherwise stated, you may use `R` for each of the exercises.
+- Be sure to read each exercise carefully!
+- Include your name and NetID in the final document, not only in your filenames.
+
+# Assignment Solutions
+
+## Exercise 1 (Does It Work?)
+
+In this exercise, we will investigate how well backwards AIC and BIC actually perform. For either to be "working" correctly, when used, they should result in a low number of both **false positives** and **false negatives**. In model selection,
+
+- **False Positive**, FP: Incorrectly including a variable in the model. Including a *non-significant* variable.
+- **False Negative**, FN: Incorrectly excluding a variable in the model. Excluding a *significant* variable.
+
+Consider the **true** model
+
+\[
+Y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3 + \beta_4 x_4 + \beta_5 x_5 + \beta_6 x_6 + \beta_7 x_7 + \beta_8 x_8 + \beta_9 x_9 + \beta_{10} x_{10} + \epsilon
+\]
+
+where $\epsilon \sim N(0, \sigma^2 = 4)$. The true values of the $\beta$ parameters are given in the `R` code below.
+
+```{r}
+beta_0  = 1
+beta_1  = 1
+beta_2  = 1
+beta_3  = 1
+beta_4  = 1
+beta_5  = 0
+beta_6  = 0
+beta_7  = 0
+beta_8  = 0
+beta_9  = 0
+beta_10 = 0
+sigma = 2
+```
+
+Then, as we have specified them, some variables are significant, and some are not. We store their names in `R` variables for use later.
+
+```{r}
+signif  = c("(Intercept)", "x_1", "x_2", "x_3", "x_4")
+not_sig = c("x_5", "x_6", "x_7", "x_8", "x_9", "x_10")
+```
+
+We now simulate values for these `x` variables, which we will use throughout part **(a)**.
+
+```{r}
+set.seed(42)
+n = 100
+x_1  = runif(n, 0, 10)
+x_2  = runif(n, 0, 10)
+x_3  = runif(n, 0, 10)
+x_4  = runif(n, 0, 10)
+x_5  = runif(n, 0, 10)
+x_6  = runif(n, 0, 10)
+x_7  = runif(n, 0, 10)
+x_8  = runif(n, 0, 10)
+x_9  = runif(n, 0, 10)
+x_10 = runif(n, 0, 10)
+```
+
+We then combine these into a data frame, and simulate `y` according to the true model.
+
+```{r}
+sim_data_1 = data.frame(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9, x_10,
+  y = beta_0 + beta_1 * x_1 + beta_2 * x_2 + beta_3 * x_3 + beta_4 * x_4 + rnorm(n, 0 , sigma)
+)
+```
+
+We do a quick check to make sure everything looks correct.
+
+```{r}
+head(sim_data_1)
+```
+
+Now, we fit an incorrect model.
+
+```{r}
+fit = lm(y ~ x_4 + x_5 + x_6, data = sim_data_1)
+coef(fit)
+```
+
+Notice, we have coefficients for `x_4`, `x_5`, and `x_6`. This means that `x_5` and `x_6` are false positives, while `x_1`, `x_2`, and `x_3` are false negatives.
+
+To detect the false negatives, use:
+
+```{r}
+# which are false negatives?
+!(signif %in% names(coef(fit)))
+```
+
+To detect the false positives, use:
+
+```{r}
+# which are false positives?
+names(coef(fit)) %in% not_sig
+```
+
+Note that in both cases, you could `sum()` the result to obtain the number of false negatives or positives.
+
+**(a)** Set a seed equal to your birthday; then, using the given data for each `x` variable above in `sim_data_1`, simulate the response variable `y` 200 times. Each time,
+
+- Fit an additive model using each of the `x` variables.
+- Perform variable selection using backwards AIC.
+- Perform variable selection using backwards BIC.
+- Calculate and store the number of false negatives for the models chosen by AIC and BIC.
+- Calculate and store the number of false positives for the models chosen by AIC and BIC.
+
+Calculate the rate of false positives and negatives for both AIC and BIC. Compare the rates between the two methods.
+
+**(b)** Set a seed equal to your birthday; then, using the given data for each `x` variable below in `sim_data_2`, simulate the response variable `y` 200 times. Each time,
+
+- Fit an additive model using each of the `x` variables.
+- Perform variable selection using backwards AIC.
+- Perform variable selection using backwards BIC.
+- Calculate and store the number of false negatives for the models chosen by AIC and BIC.
+- Calculate and store the number of false positives for the models chosen by AIC and BIC.
+
+Calculate the rate of false positives and negatives for both AIC and BIC. Compare the rates between the two methods. Also compare to your answers in part **(a)** and give a possible reason for any difference.
+
+```{r}
+set.seed(42)
+x_1  = runif(n, 0, 10)
+x_2  = runif(n, 0, 10)
+x_3  = runif(n, 0, 10)
+x_4  = runif(n, 0, 10)
+x_5  = runif(n, 0, 10)
+x_6  = runif(n, 0, 10)
+x_7  = runif(n, 0, 10)
+x_8  = x_1 + rnorm(n, 0, 0.1)
+x_9  = x_1 + rnorm(n, 0, 0.1)
+x_10 = x_2 + rnorm(n, 0, 0.1)
+
+sim_data_2 = data.frame(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9, x_10,
+  y = beta_0 + beta_1 * x_1 + beta_2 * x_2 + beta_3 * x_3 + beta_4 * x_4 + rnorm(n, 0 , sigma)
+)
+```
+
+## Exercise 2 (Body Dimensions)
+
+For this exercise we will use the data stored in [`body.csv`](body.csv). It contains 21 body dimension measurements as well as age, weight, height, and gender on 507 individuals. The participants were primarily individuals in their twenties and thirties, with a few older men and women, all of whom proclaimed to exercise several hours a week. The variables in the dataset are:
+
+Skeletal Measurements (all measured in cm):
+
+- `s1` - Biacromial diameter
+- `s2` - Biiliac diameter, or "pelvic breadth"
+- `s3` - Bitrochanteric diameter
+- `s4` - Chest depth between spine and sternum at nipple level, mid-expiration
+- `s5` - Chest diameter at nipple level, mid-expiration
+- `s6` - Elbow diameter, sum of two elbows
+- `s7` - Wrist diameter, sum of two wrists
+- `s8` - Knee diameter, sum of two knees
+- `s9` - Ankle diameter, sum of two ankles
+
+Girth Measurements (all measured in cm):
+
+- `g1` - Shoulder girth over deltoid muscles
+- `g2` - Chest girth, nipple line in males and just above breast tissue in females, mid-expiration
+- `g3` - Waist girth, narrowest part of torso below the rib cage, average of contracted and relaxed position
+- `g4` - Navel (or "Abdominal") girth at umbilicus and iliac crest, iliac crest as a landmark
+- `g5` - Hip girth at level of bitrochanteric diameter
+- `g6` - Thigh girth below gluteal fold, average of right and left girths
+- `g7` - Bicep girth, flexed, average of right and left girths
+- `g8` - Forearm girth, extended, palm up, average of right and left girths
+- `g9` - Knee girth over patella, slightly flexed position, average of right and left girths
+- `g10` - Calf maximum girth, average of right and left girths
+- `g11` - Ankle minimum girth, average of right and left girths
+- `g12` - Wrist minimum girth, average of right and left girths
+
+Other Measurements:
+
+- `Age` - in years
+- `Weight` - in kg
+- `Height` - in cm
+- `Gender` - 0 = female, 1 = male
+
+**(a)** Find a good model for `Weight` using only the skeletal variables as well as `Age`, `Height`, and `Gender`. You are not allowed to remove any data or transform the response.
+
+**(b)** Find a good model for `Weight` using only the girth variables as well as `Age`, `Height`, and `Gender`. You are not allowed to remove any data or transform the response.
+
+**(c)** Based on **(a)** and **(b)**, which set of body measurements are more useful for predicting `Weight`?
+
+**(d)** Using all available variables, devise and justify a good model for predicting `Weight`. It should use less than 50 parameters and obtain a LOOCV RMSE less than 1.9. You are not allowed to remove any data or transform the response.
+
+## Exercise 3 (Ball Bearings)
+
+For this exercise we will use the data stored in [`ballbearings.csv`](ballbearings.csv). It contains 210 observations, each of which reports the results of a test on a set of ball bearings. Manufacturers who use bearings in their products have an interest in their reliability. The basic measure of reliability in this context is the rating life, also known in engineering as fatigue failure. The objective is to model `L50`, the median lifetime of this sample of ball bearings. The variables in the dataset are:
+
+- `L50` - median life: the number of revolutions that 50% of a group of identical bearings would be expected to achieve
+- `P` - the load on the bearing in operation
+- `Z` - the number of balls in the bearing
+- `D` - the diameter of the balls
+- `Company` - denotes who manufactured the ball bearing (A, B, C)
+- `Type` - Company B makes several types of ball bearings (1, 2, 3); 0 otherwise
+
+**(a)** Find a model for `log(L50)` that does not reject the Shapiro-Wilk test at $\alpha = 0.01$ and obtains an **adjusted** $R^2$ higher than 0.52. You may not remove any observations, but may consider transformations. Your model should use fewer than 10 $\beta$ parameters.
+
+**(b)** Find a model for `log(L50)` that does not reject the Shapiro-Wilk test at $\alpha = 0.01$ and obtains an **adjusted** $R^2$ higher than 0.60. You may not remove any observations, but may consider transformations. Your model should use fewer than 20 $\beta$ parameters.
+
+## Exercise 4 (Free Points)
+
+This exercise is worth 10 points. If you turn in this assignment, you get 10 points! Congratulations, you've made it to the end of the homework for the semester!
