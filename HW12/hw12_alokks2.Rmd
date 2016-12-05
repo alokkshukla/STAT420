@@ -19,23 +19,6 @@ options(scipen = 1, digits = 4, width = 80)
 ```
 
 
-# Directions
-
-Students are encouraged to work together on homework using the discussion boards. However, sharing, copying, or providing any part of a homework solution or code is an infraction of the University's rules on academic integrity. Any violation will be punished as severely as possible.
-
-- Your assignment must be submitted through Coursera. You are required to upload one `.zip` file, named `hw12_yourNetID.zip`, which contains:
-    - Your RMarkdown file which should be saved as `hw12_yourNetID.Rmd`. For example `hw12_dalpiaz2.Rmd`.
-    - The result of knitting your RMarkdown file as `hw12_yourNetID.html`. For example `hw12_dalpiaz2.html`.
-    - Any outside data provided as a `.csv` file used for the homework.
-    - This will roughly match the `.zip` provided.
-- Your resulting `.html` file will be considered a "report" which is the material that will determine the majority of your grade. Be sure to visibly include all `R` code and output that is relevant to answering the exercises. (You do not need to include irrelevant code you tried that resulted in error or did not answer the question correctly.)
-- You are granted an unlimited number of submissions, but only the last submission *before* the deadline will be viewed and graded.
-- If you use [this `.Rmd` file as a template](hw12-assign.Rmd), be sure to remove the quotation, directions section, and consider removing `eval = FALSE` from any code chunks provided (if you would like to run that code as part of your assignment).
-- Your `.Rmd` file should be written such that, when stored in a folder with any data you are asked to import, it will knit properly without modification. If your `.zip` file is organized properly, this should not be an issue.
-- Unless otherwise stated, you may use `R` for each of the exercises.
-- Be sure to read each exercise carefully!
-- Include your name and NetID in the final document, not only in your filenames.
-
 # Assignment Solutions
 
 ## Exercise 1 (Does It Work?)
@@ -141,6 +124,51 @@ Note that in both cases, you could `sum()` the result to obtain the number of fa
 
 Calculate the rate of false positives and negatives for both AIC and BIC. Compare the rates between the two methods.
 
+**Solution**
+
+```{r}
+set.seed(19920120)
+num_sim = 200
+fn_aic = rep(0,num_sim)
+fp_aic = rep(0,num_sim)
+fn_bic = rep(0,num_sim)
+fp_bic = rep(0,num_sim)
+fn_aic_rate = rep(0,num_sim)
+fp_aic_rate = rep(0,num_sim)
+fn_bic_rate = rep(0,num_sim)
+fp_bic_rate = rep(0,num_sim)
+for(i in 1:num_sim){
+  #Simulate the response variable `y`
+  sim_data_1$y = beta_0 + beta_1 * x_1 + beta_2 * x_2 + beta_3 * x_3 + beta_4 * x_4 + rnorm(n, 0 , sigma)
+  #Fit an additive model using each of the `x` variables.
+  model = lm(y~.,data=sim_data_1)
+  #Perform variable selection using backwards AIC.
+  model_back_aic = step(model, direction = "backward",trace = 0)
+  #Perform variable selection using backwards BIC.
+  model_back_bic = step(model, direction = "backward", k = log(length(resid(model))),trace = 0)
+  #Calculate and store the number of false negatives for the models chosen by AIC and BIC.
+  fn_aic[i] = sum(!(signif %in% names(coef(model_back_aic))))
+  fn_bic[i] = sum(!(signif %in% names(coef(model_back_bic))))
+  #Calculate and store the number of false positives for the models chosen by AIC and BIC.
+  fp_aic[i] = sum(names(coef(model_back_aic)) %in% not_sig)
+  fp_bic[i] = sum(names(coef(model_back_bic)) %in% not_sig)
+  #Calculate the rate of false positives and negatives for both AIC and BIC.
+  fp_aic_rate[i] = fp_aic[i]/(fp_aic[i]+(sum(!(not_sig %in% names(coef(model_back_aic))))))
+  fp_bic_rate[i] = fp_bic[i]/(fp_bic[i]+(sum(!(not_sig %in% names(coef(model_back_bic))))))
+  fn_aic_rate[i] = fn_aic[i]/(fn_aic[i]+(sum(signif %in% names(coef(model_back_aic)))))
+  fn_bic_rate[i] = fn_bic[i]/(fn_bic[i]+(sum(signif %in% names(coef(model_back_bic)))))
+}
+
+#Compare the rates between the two methods.
+par(mfrow=c(1,2))
+plot(fp_aic_rate,type="l",col="dodgerblue",main="Orange: BIC, Blue: AIC",xlab="Model 1 Simulation#",ylab="FPR")
+lines(fp_bic_rate,col="orange")
+plot(fn_aic_rate,type="b",col="dodgerblue",main="Orange: BIC, Blue: AIC",xlab="Model 1 Simulation#",ylab="FNR")
+lines(fn_bic_rate,col="orange")
+
+```
+
+
 **(b)** Set a seed equal to your birthday; then, using the given data for each `x` variable below in `sim_data_2`, simulate the response variable `y` 200 times. Each time,
 
 - Fit an additive model using each of the `x` variables.
@@ -168,6 +196,65 @@ sim_data_2 = data.frame(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9, x_10,
   y = beta_0 + beta_1 * x_1 + beta_2 * x_2 + beta_3 * x_3 + beta_4 * x_4 + rnorm(n, 0 , sigma)
 )
 ```
+
+**Solution**
+```{r}
+set.seed(19920120)
+num_sim = 200
+fn_aic = rep(0,num_sim)
+fp_aic = rep(0,num_sim)
+fn_bic = rep(0,num_sim)
+fp_bic = rep(0,num_sim)
+fn_aic_rate = rep(0,num_sim)
+fp_aic_rate = rep(0,num_sim)
+fn_bic_rate = rep(0,num_sim)
+fp_bic_rate = rep(0,num_sim)
+for(i in 1:num_sim){
+  #Simulate the response variable `y`
+  sim_data_2$y = beta_0 + beta_1 * x_1 + beta_2 * x_2 + beta_3 * x_3 + beta_4 * x_4 + rnorm(n, 0 , sigma)
+  #Fit an additive model using each of the `x` variables.
+  model = lm(y~.,data=sim_data_2)
+  #Perform variable selection using backwards AIC.
+  model_back_aic = step(model, direction = "backward",trace = 0)
+  #Perform variable selection using backwards BIC.
+  model_back_bic = step(model, direction = "backward", k = log(length(resid(model))),trace = 0)
+  #Calculate and store the number of false negatives for the models chosen by AIC and BIC.
+  fn_aic[i] = sum(!(signif %in% names(coef(model_back_aic))))
+  fn_bic[i] = sum(!(signif %in% names(coef(model_back_bic))))
+  #Calculate and store the number of false positives for the models chosen by AIC and BIC.
+  fp_aic[i] = sum(names(coef(model_back_aic)) %in% not_sig)
+  fp_bic[i] = sum(names(coef(model_back_bic)) %in% not_sig)
+  #Calculate the rate of false positives and negatives for both AIC and BIC.
+  fp_aic_rate[i] = fp_aic[i]/(fp_aic[i]+(sum(!(not_sig %in% names(coef(model_back_aic))))))
+  fp_bic_rate[i] = fp_bic[i]/(fp_bic[i]+(sum(!(not_sig %in% names(coef(model_back_bic))))))
+  fn_aic_rate[i] = fn_aic[i]/(fn_aic[i]+(sum(signif %in% names(coef(model_back_aic)))))
+  fn_bic_rate[i] = fn_bic[i]/(fn_bic[i]+(sum(signif %in% names(coef(model_back_bic)))))
+}
+
+#Compare the rates between the two methods.
+par(mfrow=c(1,2))
+plot(fp_aic_rate,type="l",col="dodgerblue",main="Orange: BIC, Blue: AIC",xlab="Model 2 Simulation#",ylab="FPR")
+lines(fp_bic_rate,col="orange")
+plot(fn_aic_rate,type="l",col="dodgerblue",main="Orange: BIC, Blue: AIC",xlab="Model 2 Simulation#",ylab="FNR")
+lines(fn_bic_rate,col="orange")
+
+
+```
+<br/>
+*Compare to your answers in part **(a)** and give a possible reason for any difference.*
+
+1. FPR Comparison
+
+  Looking at the plots we can say that FPR has increased for both AIC and BIC.
+
+2. FNR Comparison
+
+  The FNR for BIC has increased much more than FNR for AIC.
+
+3. Possible reason
+
+  Multicollinearity
+
 
 ## Exercise 2 (Body Dimensions)
 
@@ -206,14 +293,119 @@ Other Measurements:
 - `Weight` - in kg
 - `Height` - in cm
 - `Gender` - 0 = female, 1 = male
+```{r,warning=FALSE}
+body <- read.csv("body.csv")
+library(leaps)
+calc_loocv_rmse = function(model) {
+sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+}
+```
+
 
 **(a)** Find a good model for `Weight` using only the skeletal variables as well as `Age`, `Height`, and `Gender`. You are not allowed to remove any data or transform the response.
 
+**Solution**
+```{r}
+weight_model = summary(regsubsets(Weight~Age+Height+Gender+s1+s2+s3+s4+s5+s6+s7+s8+s9,data=body))
+(best_r2_ind = which.max(weight_model$adjr2))
+weight_model$which[best_r2_ind, ]
+# Lets fit this model
+(weight_best_r2_model_s = lm(Weight~Age+Height+s2+s3+s4+s5+s7+s8,data = body))
+calc_loocv_rmse(weight_best_r2_model_s)
+```
+
+
+
+
 **(b)** Find a good model for `Weight` using only the girth variables as well as `Age`, `Height`, and `Gender`. You are not allowed to remove any data or transform the response.
+
+**Solution**
+```{r}
+weight_model = summary(regsubsets(Weight~Age+Height+Gender+g1+g2+g3+g4+g5+g6+g7+g8+g9+g10+g11+g12,data=body))
+(best_r2_ind = which.max(weight_model$adjr2))
+weight_model$which[best_r2_ind, ]
+# Lets fit this model
+(weight_best_r2_model_g = lm(Weight~Height+g2+g3+g5+g6+g8+g9+g10,data = body))
+calc_loocv_rmse(weight_best_r2_model_g)
+```
+
+
+
 
 **(c)** Based on **(a)** and **(b)**, which set of body measurements are more useful for predicting `Weight`?
 
+**Solution**
+```{r}
+summary(weight_best_r2_model_g)$adj.r.squared >summary(weight_best_r2_model_s)$adj.r.squared
+calc_loocv_rmse(weight_best_r2_model_g)<calc_loocv_rmse(weight_best_r2_model_s)
+```
+
+That suggests Girth Measurements are better predictors of `Weight`.
+
 **(d)** Using all available variables, devise and justify a good model for predicting `Weight`. It should use less than 50 parameters and obtain a LOOCV RMSE less than 1.9. You are not allowed to remove any data or transform the response.
+
+**Solution**
+```{r}
+weight_model = lm(Weight~.,data=body)
+weight_model_all = summary(regsubsets(Weight~.,data=body))
+# Best R2
+(best_r2_ind = which.max(weight_model_all$adjr2))
+weight_model_all$which[best_r2_ind, ]
+weight_best_r2_model = lm(Weight~Height+s8+g2+g3+g5+g6+g8+g10,data = body)
+calc_loocv_rmse(weight_best_r2_model)
+# Best AIC
+p = length(coef(weight_model))
+n = length(resid(weight_model))
+weight_model_aic = n * log(weight_model_all$rss / n) + 2 * (2:p)
+best_aic_ind = which.min(weight_model_aic)
+weight_model_all$which[best_aic_ind,]
+weight_best_aic_model =lm(Weight~Height+s8+g2+g3+g5+g6+g8+g10,data = body)
+calc_loocv_rmse(weight_best_aic_model)
+# Best BIC
+weight_model_bic = n * log(weight_model_all$rss / n) + log(n) * (2:p)
+best_bic_ind = which.min(weight_model_bic)
+weight_model_all$which[best_bic_ind,]
+weight_best_bic_model = lm(Weight~Height+s8+g2+g3+g5+g6+g8+g10,data = body)
+calc_loocv_rmse(weight_best_bic_model)
+
+```
+
+Lets consider interactions.
+```{r}
+# 2 way
+weight_model_int = lm(Weight~(Height+s8+g2+g3+g5+g6+g8+g10)^2+I(g2^2)+I(g3^2)+I(g5^2)+I(g6^2)+I(g8^2)+I(g10^2)+I(Height^2)+I(s8^2),data=body)
+# Check good enough?
+calc_loocv_rmse(weight_model_int)
+# Exhaustive search
+weight_model_int_all = summary(regsubsets(Weight~(Height+s8+g2+g3+g5+g6+g8+g10)^2+I(g2^2)+I(g3^2)+I(g5^2)+I(g6^2)+I(g8^2)+I(g10^2)+I(Height^2)+I(s8^2),data=body))
+(best_r2_ind = which.max(weight_model_int_all$adjr2))
+# Better model
+weight_model_int_better = lm(Weight~ g3+I(g2^2)+I(g8^2)+I(Height^2)+s8:g10+g2:g8+g3:g8+g5:g6,data=body)
+# Good enough?
+calc_loocv_rmse(weight_model_int_better)
+# 2 Way + 3rd Degree
+weight_model_int_3 = lm(Weight~g3+I(g2^2)+I(g8^2)+I(Height^2)+s8:g10+g2:g8+g3:g8+g5:g6+I(g2^3)+I(g8^3)+I(Height^3),data=body)
+# Good enough?
+calc_loocv_rmse(weight_model_int_3)
+# Exhaustive search
+weight_model_int_all = summary(regsubsets(Weight~g3+I(g2^2)+I(g8^2)+I(Height^2)+s8:g10+g2:g8+g3:g8+g5:g6+I(g2^3)+I(g8^3)+I(Height^3),data=body))
+(best_r2_ind = which.max(weight_model_int_all$adjr2))
+coef(weight_model_int_3)[weight_model_int_all$which[best_r2_ind,]]
+# Better model
+weight_model_int_better = lm(Weight~ g3+I(g2^2)+I(g8^2)+I(Height^3)+s8:g10+g2:g8+g3:g8+g5:g6,data=body)
+# Good enough?
+calc_loocv_rmse(weight_model_int_better)
+# Even more intercations and more height degree, Exhaustive Search
+weight_model_int_even_better = lm(Weight~ g3+I(g2^2)+I(g8^2)+I(Height^4)+s8:g10+g2:g8+g3:g8+g5:g6+(g3+g2+g8+g5+g6+g10)^3,data=body)
+weight_model_int_all = summary(regsubsets(Weight~ g3+I(g2^2)+I(g8^2)+I(Height^4)+s8:g10+g2:g8+g3:g8+g5:g6+(g3+g2+g8+g5+g6+g10)^3,data=body))
+(best_r2_ind = which.max(weight_model_int_all$adjr2))
+coef(weight_model_int_even_better)[weight_model_int_all$which[best_r2_ind,]==TRUE]
+even_better_mod = lm(Weight~ I(g2^2)+I(g8^2)+I(Height^4)+s8:g10+g2:g8 +g10:g2 +g10:g6 +g3:g8:g5,data=body )
+# Good enough?
+calc_loocv_rmse(even_better_mod)
+length(coef(even_better_mod))
+```
+We have `9` parameters in our final model that gives LOOCV RMSE less than `1.99` .
 
 ## Exercise 3 (Ball Bearings)
 
@@ -226,9 +418,51 @@ For this exercise we will use the data stored in [`ballbearings.csv`](ballbearin
 - `Company` - denotes who manufactured the ball bearing (A, B, C)
 - `Type` - Company B makes several types of ball bearings (1, 2, 3); 0 otherwise
 
+```{r}
+bearings = read.csv("ballbearings.csv")
+```
+
+
 **(a)** Find a model for `log(L50)` that does not reject the Shapiro-Wilk test at $\alpha = 0.01$ and obtains an **adjusted** $R^2$ higher than 0.52. You may not remove any observations, but may consider transformations. Your model should use fewer than 10 $\beta$ parameters.
 
+**Solution**
+```{r}
+# Default
+L50_model = lm(log(L50)~.,data=bearings)
+summary(L50_model)$adj.r.squared 
+shapiro.test(resid(L50_model))
+
+# Exhaustive Search
+L50_model_all = summary(regsubsets(log(L50)~.,data=bearings))
+(best_r2_ind = which.max(L50_model_all$adjr2))
+# Better model
+coef(L50_model)[L50_model_all$which[best_r2_ind,]]
+L50_better_model = lm(log(L50)~ P+Z+D+Company,data=bearings)
+summary(L50_better_model)$adj.r.squared 
+shapiro.test(resid(L50_better_model))
+# Interactions
+L50_int = lm(log(L50)~(.)^2+I(P^2)+I(Z^2)+I(D^2),data=bearings)
+summary(L50_int)$adj.r.squared 
+shapiro.test(resid(L50_int))
+# Even more interactions
+L50_int_3 = lm(log(L50)~(.)^3+I(P^2)+I(Z^2)+I(D^2),data=bearings)
+summary(L50_int_3)$adj.r.squared 
+shapiro.test(resid(L50_int_3))
+
+```
+
+
 **(b)** Find a model for `log(L50)` that does not reject the Shapiro-Wilk test at $\alpha = 0.01$ and obtains an **adjusted** $R^2$ higher than 0.60. You may not remove any observations, but may consider transformations. Your model should use fewer than 20 $\beta$ parameters.
+
+**Solution**
+
+Model found in previous section satisifies both conditions.
+
+```{r}
+summary(L50_int_3)$adj.r.squared 
+shapiro.test(resid(L50_int_3))
+```
+
 
 ## Exercise 4 (Free Points)
 
