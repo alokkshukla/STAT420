@@ -354,66 +354,81 @@ That suggests Girth Measurements are better predictors of `Weight`.
 
 **Solution**
 ```{r}
-weight_model = lm(Weight~.,data=body)
-weight_model_all = summary(regsubsets(Weight~.,data=body))
-# Best R2
-(best_r2_ind = which.max(weight_model_all$adjr2))
-weight_model_all$which[best_r2_ind, ]
-weight_best_r2_model = lm(Weight~Height+s8+g2+g3+g5+g6+g8+g10,data = body)
-calc_loocv_rmse(weight_best_r2_model)
-# Best AIC
-p = length(coef(weight_model))
-n = length(resid(weight_model))
-weight_model_aic = n * log(weight_model_all$rss / n) + 2 * (2:p)
-best_aic_ind = which.min(weight_model_aic)
-weight_model_all$which[best_aic_ind,]
-weight_best_aic_model =lm(Weight~Height+s8+g2+g3+g5+g6+g8+g10,data = body)
-calc_loocv_rmse(weight_best_aic_model)
-# Best BIC
-weight_model_bic = n * log(weight_model_all$rss / n) + log(n) * (2:p)
-best_bic_ind = which.min(weight_model_bic)
-weight_model_all$which[best_bic_ind,]
-weight_best_bic_model = lm(Weight~Height+s8+g2+g3+g5+g6+g8+g10,data = body)
-calc_loocv_rmse(weight_best_bic_model)
+# Lets see how many parameters we should be estimating in one model
+nrow(body)/3
 
-```
+# All 2 - way interactions
+two_int = lm(Weight~.^2,data = body)
+# Too many
+length(coef(two_int))
+# Create three models to accomodate all interactions (randomly sampled)
+model1=lm(Weight~.+g4:Gender+s8:Age+s2:g6+s9:Age+s1:g11+s6:s7+g1:Age+g3:g11+s2:s9+s1:s8+g3:Age+
+g2:g7+s7:g10+s3:Height+g9:Gender+g8:g12+s5:g5+s7:g11+s5:Gender+g5:g9+s1:s9+s5:g6+
+s7:Height+s8:g3+s5:s9+s2:g10+s6:g6+s5:g12+g11:g12+s3:s7+g6:g12+g7:g11+s3:g5+
+s1:Height+s3:s8+s9:g10+s5:s7+s2:s3+s6:g7+g4:g5+s2:g3+s2:s8+s1:Age+g9:Height+
+s9:Height+s8:g10+g4:g9+s8:g12+s6:g9+g1:g10+g8:g9+s8:s9+s1:g9+s8:g5+s6:g11+
+g7:Height+g1:g5+g1:g3+g10:g12+s8:g9+s1:g8+g3:g9+g7:g10+s5:g1+s3:g2+g2:g11+
+s1:g5+g7:g9+g1:g2+s9:g5+s5:s6+s1:g2+g1:g4+g5:g12+s5:g4+s9:g4+g1:Gender+
+g12:Gender+s8:Height+g1:g11+s3:s9+s4:Age+s4:s8+g7:Age+g2:Height+g7:g12+s4:g12+Age:Gender+
+g1:g6+s7:g4+g4:Age+s4:g7+s9:Gender+s2:g8+s7:g3+s3:g4+s3:s4+s8:g6+s3:g12,data=body)
 
-Lets consider interactions.
-```{r}
-# 2 way
-weight_model_int = lm(Weight~(Height+s8+g2+g3+g5+g6+g8+g10)^2+I(g2^2)+I(g3^2)+I(g5^2)+I(g6^2)+I(g8^2)+I(g10^2)+I(Height^2)+I(s8^2),data=body)
-# Check good enough?
-calc_loocv_rmse(weight_model_int)
-# Exhaustive search
-weight_model_int_all = summary(regsubsets(Weight~(Height+s8+g2+g3+g5+g6+g8+g10)^2+I(g2^2)+I(g3^2)+I(g5^2)+I(g6^2)+I(g8^2)+I(g10^2)+I(Height^2)+I(s8^2),data=body))
-(best_r2_ind = which.max(weight_model_int_all$adjr2))
-# Better model
-weight_model_int_better = lm(Weight~ g3+I(g2^2)+I(g8^2)+I(Height^2)+s8:g10+g2:g8+g3:g8+g5:g6,data=body)
-# Good enough?
-calc_loocv_rmse(weight_model_int_better)
-# 2 Way + 3rd Degree
-weight_model_int_3 = lm(Weight~g3+I(g2^2)+I(g8^2)+I(Height^2)+s8:g10+g2:g8+g3:g8+g5:g6+I(g2^3)+I(g8^3)+I(Height^3),data=body)
-# Good enough?
-calc_loocv_rmse(weight_model_int_3)
-# Exhaustive search
-weight_model_int_all = summary(regsubsets(Weight~g3+I(g2^2)+I(g8^2)+I(Height^2)+s8:g10+g2:g8+g3:g8+g5:g6+I(g2^3)+I(g8^3)+I(Height^3),data=body))
-(best_r2_ind = which.max(weight_model_int_all$adjr2))
-coef(weight_model_int_3)[weight_model_int_all$which[best_r2_ind,]]
-# Better model
-weight_model_int_better = lm(Weight~ g3+I(g2^2)+I(g8^2)+I(Height^3)+s8:g10+g2:g8+g3:g8+g5:g6,data=body)
-# Good enough?
-calc_loocv_rmse(weight_model_int_better)
-# Even more intercations and more height degree, Exhaustive Search
-weight_model_int_even_better = lm(Weight~ g3+I(g2^2)+I(g8^2)+I(Height^4)+s8:g10+g2:g8+g3:g8+g5:g6+(g3+g2+g8+g5+g6+g10)^3,data=body)
-weight_model_int_all = summary(regsubsets(Weight~ g3+I(g2^2)+I(g8^2)+I(Height^4)+s8:g10+g2:g8+g3:g8+g5:g6+(g3+g2+g8+g5+g6+g10)^3,data=body))
-(best_r2_ind = which.max(weight_model_int_all$adjr2))
-coef(weight_model_int_even_better)[weight_model_int_all$which[best_r2_ind,]==TRUE]
-even_better_mod = lm(Weight~ I(g2^2)+I(g8^2)+I(Height^4)+s8:g10+g2:g8 +g10:g2 +g10:g6 +g3:g8:g5,data=body )
-# Good enough?
-calc_loocv_rmse(even_better_mod)
-length(coef(even_better_mod))
+model2=lm(Weight~.+s2:Height+s9:g3+s3:s6+s3:Gender+s1:s7+s1:g3+g8:g11+g6:g10+g5:g7+Age:Height+s5:g10+
+g4:g12+s6:g2+s1:s4+s1:g4+s1:g6+g3:g7+s4:g8+g6:g11+s2:Age+s6:s8+g9:g10+
+s6:g5+g5:g6+s8:g8+s6:Gender+s2:g12+s8:Gender+g3:g12+s9:g9+s7:g1+s4:s7+s3:g10+
+s8:g7+g12:Age+s4:Height+s7:g9+s1:s2+s6:Age+s5:g9+g12:Height+g3:g5+s3:Age+g7:g8+
+g3:g8+s7:g8+s1:Gender+g1:g12+s2:s5+s4:g11+s3:g7+g4:g7+s1:s5+s3:g1+s4:Gender+
+s2:s7+s5:g3+g5:g8+g10:g11+s7:Gender+g2:g5+g9:g11+g6:Age+g2:g8+s3:g6+g5:Age+
+g5:Gender+s3:g8+s4:g5+s4:g1+s2:Gender+s2:g5+s2:s6+s6:g4+g1:g7+s2:g4+s6:g12+
+s5:Age+s7:g5+g3:g10+g6:Gender+s9:g12+g3:Gender+s5:g7+g4:g6+s7:g12+s5:g8+s7:g2,data=body)
+
+model3 = lm(Weight~.+g10:Height+s4:g2+s2:g11+s7:Age+g6:g8+g2:g4+s3:g11+s5:Height+s9:g11+s1:s6+s4:s6+
+s9:g1+s4:g6+s7:s9+g2:g10+s5:s8+s7:g7+s7:g6+g4:g11+g5:g11+s6:g8+s9:g6+
+s4:g4+s1:g7+g11:Gender+g3:g6+g9:g12+Height:Gender+g10:Age+g1:g9+g6:Height+g4:g10+g3:g4+
+s1:g1+g1:Height+s6:g1+s1:g12+g8:Age+g2:g9+s1:s3+s2:g1+g4:Height+g3:Height+s8:g11+
+g5:Height+s1:g10+g7:Gender+g2:g12+g6:g9+s4:s9+g1:g8+g2:Gender+s3:s5+s3:g9+s4:s5+
+g2:g6+s6:Height+s7:s8+g10:Gender+g9:Age+g6:g7+s6:g10+g4:g8+s8:g2+s9:g7+s8:g4+
+g5:g10+s6:g3+g11:Age+s2:g9+s5:g11+g8:g10+s8:g1+s4:g3+s4:g9+g2:Age+s3:g3+
+s4:g10+g8:Height+g8:Gender+s6:s9+s2:g7+s9:g8+g11:Height+s5:g2+s9:g2+g2:g3+s2:s4+
+s2:g2,data=body)
+
+# Choose significant from these
+
+model1_aic = step(model1,direction="backward",trace=0)
+model2_aic = step(model2,direction="backward",trace=0)
+model3_aic = step(model3,direction="backward",trace=0)
+
+# How many signif parameters in total
+length(coef(model3_aic))+length(coef(model2_aic))+length(coef(model1_aic))
+
+# Combine these and quadratic terms
+combined_model = lm(Weight~s1+s2+s3+s4+s5+s7+s8+s9+g1+g2+g3+g4+g5+g6+g7+g8+g9+g10+g11+g12+Age+Height+Gender+
+s8:Age+s1:g11+g1:Age+g3:g11+s2:s9+s1:s8+g3:Age+g2:g7+s7:g10+g9:Gender+s7:g11+s5:g6+
+g11:g12+s3:s7+g6:g12+g7:g11+s3:g5+s1:Height+s2:s3+s2:s8+s1:Age+s9:Height+s8:g10+s8:s9+
+g1:g2+s9:g5+s1:g2+g1:g4+g5:g12+s5:g4+s9:g4+g12:Gender+s8:Height+Age:Gender+g1:g6+g4:Age+
+s4:g7+s8:g6+s3:g12+s3:s6+s3:Gender+g8:g11+g5:g7+Age:Height+s5:g10+s6:g2+s1:s4+s1:g4+g3:g7+g6:g11+s6:g5+
+s6:Gender+s2:g12+s7:g1+s3:g10+g12:Age+s4:Height+g3:g8+s2:s5+g4:g7+s1:s5+s5:g3+s7:Gender+
+g2:g5+g6:Age+s4:g1+s2:Gender+s2:g4+s7:g5+s9:g12+g3:Gender+g4:g6+s5:g8+s7:g2+s4:g2+g6:g8+
+g2:g4+s9:g11+s4:s6+s9:g1+g4:g11+g5:g11+s9:g6+g11:Gender+Height:Gender+g10:Age+g4:g10+
+g8:Age+g6:g9+g1:g8+g2:Gender+g2:g6+s7:s8+s6:g10+s8:g4+g8:g10+s8:g1+g2:Age+g8:Gender+s9:g8+g2:g3+
+I(s1^2)+I(s2^2)+I(s3^2)+I(s4^2)+I(s5^2)+I(s6^2)+I(s7^2)+I(s8^2)+I(s9^2)+I(g1^2)+I(g2^2)+I(g3^2)+
+  I(g4^2)+I(g5^2)+I(g6^2)+I(g7^2)+I(g8^2)+I(g9^2)+I(g10^2)+I(g11^2)+I(g12^2)+I(Age^2)+I(Weight^2)+I(Height^2)+I(Gender^2),data = body)
+
+# Number of parameters
+length(coef(combined_model))
+
+# LOOCV RMSE
+calc_loocv_rmse(combined_model)
+
+# Lets optimize
+model_back_bic = step(combined_model, direction = "backward", k = log(length(resid(combined_model))),trace = 0)
+
+# LOOCV RMSE
+calc_loocv_rmse(model_back_bic)
+
+# No. of parameters
+length(coef(model_back_bic))
 ```
-We have `9` parameters in our final model that gives LOOCV RMSE less than `1.99` .
+We have `43` parameters in our final model that gives LOOCV RMSE less than `1.9` .
 
 ## Exercise 3 (Ball Bearings)
 
@@ -452,11 +467,43 @@ shapiro.test(resid(L50_better_model))
 L50_int = lm(log(L50)~(.)^2+I(P^2)+I(Z^2)+I(D^2),data=bearings)
 summary(L50_int)$adj.r.squared 
 shapiro.test(resid(L50_int))
+
+
 # Even more interactions
 L50_int_3 = lm(log(L50)~(.)^3+I(P^2)+I(Z^2)+I(D^2),data=bearings)
 summary(L50_int_3)$adj.r.squared 
 shapiro.test(resid(L50_int_3))
+# Not okay
+length(coef(L50_int_3))
 
+# Optimize
+L50_int_all = summary(regsubsets(log(L50)~(.)^3+I(P^2)+I(Z^2)+I(D^2),data=bearings))
+(best_r2_ind = which.max(L50_int_all$adjr2))
+coef(L50_int_3)[L50_int_all$which[best_r2_ind,]]
+better_mod = lm(log(L50)~P+D+I(P^2)+P:D+D:Company+P:Z:Type+ P:D:Company+P:Company:Type+Z:D:Company,data=bearings)
+
+# Evaluate
+length(coef(better_mod))
+summary(better_mod)$adj.r.squared 
+shapiro.test(resid(better_mod))
+
+# Optimize
+model_back_bic = step(better_mod, direction = "backward", k = log(length(resid(better_mod))),trace = 0)
+# Even more
+model_final = lm(log(L50)~P+D+I(P^2)+P:D+P:Z:Type+D:Company:Z+P:Company:Type,data=bearings)
+
+# Evaluate
+summary(model_final)$adj.r.squared
+length(coef(model_final))
+shapiro.test(resid(model_final))
+
+# Optimze
+
+model = lm(log(L50)~P+P:D + D+I(P^2)  +P:Z:Type+P:Type:Company+D:Z,data=bearings)
+# Evaluate
+length(coef(model))
+summary(model)$adj.r.squared
+shapiro.test(resid(model))
 ```
 
 
@@ -464,11 +511,15 @@ shapiro.test(resid(L50_int_3))
 
 **Solution**
 
-Model found in previous section satisifies both conditions.
+
 
 ```{r}
-summary(L50_int_3)$adj.r.squared 
-shapiro.test(resid(L50_int_3))
+better_mod = lm(log(L50)~P+D+I(P^2)+P:D+D:Company+P:Z:Type+ P:D:Company+P:Company:Type+Z:D:Company,data=bearings)
+
+# Evaluate
+length(coef(better_mod))
+summary(better_mod)$adj.r.squared 
+shapiro.test(resid(better_mod))
 ```
 
 

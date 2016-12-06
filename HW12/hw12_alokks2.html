@@ -367,7 +367,7 @@ for(i in <span class="dv">1</span>:num_sim){
 <ol start="2" style="list-style-type: decimal">
 <li>FNR Comparison</li>
 </ol>
-<p>The FNR for BIC has increased much more than FNR for AIC.</p>
+<p>The FNR for BIC has increased more than FNR for AIC.</p>
 <ol start="3" style="list-style-type: decimal">
 <li>Possible reason</li>
 </ol>
@@ -476,112 +476,82 @@ calc_loocv_rmse =<span class="st"> </span>function(model) {
 <p>That suggests Girth Measurements are better predictors of <code>Weight</code>.</p>
 <p><strong>(d)</strong> Using all available variables, devise and justify a good model for predicting <code>Weight</code>. It should use less than 50 parameters and obtain a LOOCV RMSE less than 1.9. You are not allowed to remove any data or transform the response.</p>
 <p><strong>Solution</strong></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">weight_model =<span class="st"> </span><span class="kw">lm</span>(Weight~.,<span class="dt">data=</span>body)
-weight_model_all =<span class="st"> </span><span class="kw">summary</span>(<span class="kw">regsubsets</span>(Weight~.,<span class="dt">data=</span>body))
-<span class="co"># Best R2</span>
-(<span class="dt">best_r2_ind =</span> <span class="kw">which.max</span>(weight_model_all$adjr2))</code></pre></div>
-<pre><code>## [1] 8</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">weight_model_all$which[best_r2_ind, ]</code></pre></div>
-<pre><code>## (Intercept)          s1          s2          s3          s4          s5 
-##        TRUE       FALSE       FALSE       FALSE       FALSE       FALSE 
-##          s6          s7          s8          s9          g1          g2 
-##       FALSE       FALSE        TRUE       FALSE       FALSE        TRUE 
-##          g3          g4          g5          g6          g7          g8 
-##        TRUE       FALSE        TRUE        TRUE       FALSE        TRUE 
-##          g9         g10         g11         g12         Age      Height 
-##       FALSE        TRUE       FALSE       FALSE       FALSE        TRUE 
-##      Gender 
-##       FALSE</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">weight_best_r2_model =<span class="st"> </span><span class="kw">lm</span>(Weight~Height+s8+g2+g3+g5+g6+g8+g10,<span class="dt">data =</span> body)
-<span class="kw">calc_loocv_rmse</span>(weight_best_r2_model)</code></pre></div>
-<pre><code>## [1] 2.232</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Best AIC</span>
-p =<span class="st"> </span><span class="kw">length</span>(<span class="kw">coef</span>(weight_model))
-n =<span class="st"> </span><span class="kw">length</span>(<span class="kw">resid</span>(weight_model))
-weight_model_aic =<span class="st"> </span>n *<span class="st"> </span><span class="kw">log</span>(weight_model_all$rss /<span class="st"> </span>n) +<span class="st"> </span><span class="dv">2</span> *<span class="st"> </span>(<span class="dv">2</span>:p)
-best_aic_ind =<span class="st"> </span><span class="kw">which.min</span>(weight_model_aic)
-weight_model_all$which[best_aic_ind,]</code></pre></div>
-<pre><code>## (Intercept)          s1          s2          s3          s4          s5 
-##        TRUE       FALSE       FALSE       FALSE       FALSE       FALSE 
-##          s6          s7          s8          s9          g1          g2 
-##       FALSE       FALSE        TRUE       FALSE       FALSE        TRUE 
-##          g3          g4          g5          g6          g7          g8 
-##        TRUE       FALSE        TRUE        TRUE       FALSE        TRUE 
-##          g9         g10         g11         g12         Age      Height 
-##       FALSE        TRUE       FALSE       FALSE       FALSE        TRUE 
-##      Gender 
-##       FALSE</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">weight_best_aic_model =<span class="kw">lm</span>(Weight~Height+s8+g2+g3+g5+g6+g8+g10,<span class="dt">data =</span> body)
-<span class="kw">calc_loocv_rmse</span>(weight_best_aic_model)</code></pre></div>
-<pre><code>## [1] 2.232</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Best BIC</span>
-weight_model_bic =<span class="st"> </span>n *<span class="st"> </span><span class="kw">log</span>(weight_model_all$rss /<span class="st"> </span>n) +<span class="st"> </span><span class="kw">log</span>(n) *<span class="st"> </span>(<span class="dv">2</span>:p)
-best_bic_ind =<span class="st"> </span><span class="kw">which.min</span>(weight_model_bic)
-weight_model_all$which[best_bic_ind,]</code></pre></div>
-<pre><code>## (Intercept)          s1          s2          s3          s4          s5 
-##        TRUE       FALSE       FALSE       FALSE       FALSE       FALSE 
-##          s6          s7          s8          s9          g1          g2 
-##       FALSE       FALSE        TRUE       FALSE       FALSE        TRUE 
-##          g3          g4          g5          g6          g7          g8 
-##        TRUE       FALSE        TRUE        TRUE       FALSE        TRUE 
-##          g9         g10         g11         g12         Age      Height 
-##       FALSE        TRUE       FALSE       FALSE       FALSE        TRUE 
-##      Gender 
-##       FALSE</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">weight_best_bic_model =<span class="st"> </span><span class="kw">lm</span>(Weight~Height+s8+g2+g3+g5+g6+g8+g10,<span class="dt">data =</span> body)
-<span class="kw">calc_loocv_rmse</span>(weight_best_bic_model)</code></pre></div>
-<pre><code>## [1] 2.232</code></pre>
-<p>Lets consider interactions.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># 2 way</span>
-weight_model_int =<span class="st"> </span><span class="kw">lm</span>(Weight~(Height+s8+g2+g3+g5+g6+g8+g10)^<span class="dv">2</span>+<span class="kw">I</span>(g2^<span class="dv">2</span>)+<span class="kw">I</span>(g3^<span class="dv">2</span>)+<span class="kw">I</span>(g5^<span class="dv">2</span>)+<span class="kw">I</span>(g6^<span class="dv">2</span>)+<span class="kw">I</span>(g8^<span class="dv">2</span>)+<span class="kw">I</span>(g10^<span class="dv">2</span>)+<span class="kw">I</span>(Height^<span class="dv">2</span>)+<span class="kw">I</span>(s8^<span class="dv">2</span>),<span class="dt">data=</span>body)
-<span class="co"># Check good enough?</span>
-<span class="kw">calc_loocv_rmse</span>(weight_model_int)</code></pre></div>
-<pre><code>## [1] 2.129</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Exhaustive search</span>
-weight_model_int_all =<span class="st"> </span><span class="kw">summary</span>(<span class="kw">regsubsets</span>(Weight~(Height+s8+g2+g3+g5+g6+g8+g10)^<span class="dv">2</span>+<span class="kw">I</span>(g2^<span class="dv">2</span>)+<span class="kw">I</span>(g3^<span class="dv">2</span>)+<span class="kw">I</span>(g5^<span class="dv">2</span>)+<span class="kw">I</span>(g6^<span class="dv">2</span>)+<span class="kw">I</span>(g8^<span class="dv">2</span>)+<span class="kw">I</span>(g10^<span class="dv">2</span>)+<span class="kw">I</span>(Height^<span class="dv">2</span>)+<span class="kw">I</span>(s8^<span class="dv">2</span>),<span class="dt">data=</span>body))
-(<span class="dt">best_r2_ind =</span> <span class="kw">which.max</span>(weight_model_int_all$adjr2))</code></pre></div>
-<pre><code>## [1] 8</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Better model</span>
-weight_model_int_better =<span class="st"> </span><span class="kw">lm</span>(Weight~<span class="st"> </span>g3+<span class="kw">I</span>(g2^<span class="dv">2</span>)+<span class="kw">I</span>(g8^<span class="dv">2</span>)+<span class="kw">I</span>(Height^<span class="dv">2</span>)+s8:g10+g2:g8+g3:g8+g5:g6,<span class="dt">data=</span>body)
-<span class="co"># Good enough?</span>
-<span class="kw">calc_loocv_rmse</span>(weight_model_int_better)</code></pre></div>
-<pre><code>## [1] 2.007</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># 2 Way + 3rd Degree</span>
-weight_model_int_3 =<span class="st"> </span><span class="kw">lm</span>(Weight~g3+<span class="kw">I</span>(g2^<span class="dv">2</span>)+<span class="kw">I</span>(g8^<span class="dv">2</span>)+<span class="kw">I</span>(Height^<span class="dv">2</span>)+s8:g10+g2:g8+g3:g8+g5:g6+<span class="kw">I</span>(g2^<span class="dv">3</span>)+<span class="kw">I</span>(g8^<span class="dv">3</span>)+<span class="kw">I</span>(Height^<span class="dv">3</span>),<span class="dt">data=</span>body)
-<span class="co"># Good enough?</span>
-<span class="kw">calc_loocv_rmse</span>(weight_model_int_3)</code></pre></div>
-<pre><code>## [1] 2.005</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Exhaustive search</span>
-weight_model_int_all =<span class="st"> </span><span class="kw">summary</span>(<span class="kw">regsubsets</span>(Weight~g3+<span class="kw">I</span>(g2^<span class="dv">2</span>)+<span class="kw">I</span>(g8^<span class="dv">2</span>)+<span class="kw">I</span>(Height^<span class="dv">2</span>)+s8:g10+g2:g8+g3:g8+g5:g6+<span class="kw">I</span>(g2^<span class="dv">3</span>)+<span class="kw">I</span>(g8^<span class="dv">3</span>)+<span class="kw">I</span>(Height^<span class="dv">3</span>),<span class="dt">data=</span>body))
-(<span class="dt">best_r2_ind =</span> <span class="kw">which.max</span>(weight_model_int_all$adjr2))</code></pre></div>
-<pre><code>## [1] 8</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">coef</span>(weight_model_int_3)[weight_model_int_all$which[best_r2_ind,]]</code></pre></div>
-<pre><code>## (Intercept)          g3     I(g2^2)     I(g8^2) I(Height^3)      s8:g10 
-##   9.797e+00  -3.935e-01   9.733e-03   1.181e-01   7.887e-06   1.912e-02 
-##       g2:g8       g3:g8       g5:g6 
-##  -7.303e-02   2.707e-02   3.890e-03</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Better model</span>
-weight_model_int_better =<span class="st"> </span><span class="kw">lm</span>(Weight~<span class="st"> </span>g3+<span class="kw">I</span>(g2^<span class="dv">2</span>)+<span class="kw">I</span>(g8^<span class="dv">2</span>)+<span class="kw">I</span>(Height^<span class="dv">3</span>)+s8:g10+g2:g8+g3:g8+g5:g6,<span class="dt">data=</span>body)
-<span class="co"># Good enough?</span>
-<span class="kw">calc_loocv_rmse</span>(weight_model_int_better)</code></pre></div>
-<pre><code>## [1] 1.998</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Even more intercations and more height degree, Exhaustive Search</span>
-weight_model_int_even_better =<span class="st"> </span><span class="kw">lm</span>(Weight~<span class="st"> </span>g3+<span class="kw">I</span>(g2^<span class="dv">2</span>)+<span class="kw">I</span>(g8^<span class="dv">2</span>)+<span class="kw">I</span>(Height^<span class="dv">4</span>)+s8:g10+g2:g8+g3:g8+g5:g6+(g3+g2+g8+g5+g6+g10)^<span class="dv">3</span>,<span class="dt">data=</span>body)
-weight_model_int_all =<span class="st"> </span><span class="kw">summary</span>(<span class="kw">regsubsets</span>(Weight~<span class="st"> </span>g3+<span class="kw">I</span>(g2^<span class="dv">2</span>)+<span class="kw">I</span>(g8^<span class="dv">2</span>)+<span class="kw">I</span>(Height^<span class="dv">4</span>)+s8:g10+g2:g8+g3:g8+g5:g6+(g3+g2+g8+g5+g6+g10)^<span class="dv">3</span>,<span class="dt">data=</span>body))
-(<span class="dt">best_r2_ind =</span> <span class="kw">which.max</span>(weight_model_int_all$adjr2))</code></pre></div>
-<pre><code>## [1] 8</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">coef</span>(weight_model_int_even_better)[weight_model_int_all$which[best_r2_ind,]==<span class="ot">TRUE</span>]</code></pre></div>
-<pre><code>## (Intercept)     I(g2^2)     I(g8^2) I(Height^4)      s8:g10       g2:g8 
-##  -2.167e+00   1.798e-02   9.223e-02   1.663e-08   1.701e-02  -2.411e-01 
-##      g10:g2      g10:g6    g3:g8:g5 
-##  -2.415e-01   2.977e-01  -5.911e-03</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">even_better_mod =<span class="st"> </span><span class="kw">lm</span>(Weight~<span class="st"> </span><span class="kw">I</span>(g2^<span class="dv">2</span>)+<span class="kw">I</span>(g8^<span class="dv">2</span>)+<span class="kw">I</span>(Height^<span class="dv">4</span>)+s8:g10+g2:g8 +g10:g2 +g10:g6 +g3:g8:g5,<span class="dt">data=</span>body )
-<span class="co"># Good enough?</span>
-<span class="kw">calc_loocv_rmse</span>(even_better_mod)</code></pre></div>
-<pre><code>## [1] 1.99</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">length</span>(<span class="kw">coef</span>(even_better_mod))</code></pre></div>
-<pre><code>## [1] 9</code></pre>
-<p>We have <code>9</code> parameters in our final model that gives LOOCV RMSE less than <code>1.99</code> .</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Lets see how many parameters we should be estimating in one model</span>
+<span class="kw">nrow</span>(body)/<span class="dv">3</span></code></pre></div>
+<pre><code>## [1] 169</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># All 2 - way interactions</span>
+two_int =<span class="st"> </span><span class="kw">lm</span>(Weight~.^<span class="dv">2</span>,<span class="dt">data =</span> body)
+<span class="co"># Too many</span>
+<span class="kw">length</span>(<span class="kw">coef</span>(two_int))</code></pre></div>
+<pre><code>## [1] 301</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create three models to accomodate all interactions (randomly sampled)</span>
+model1=<span class="kw">lm</span>(Weight~.+g4:Gender+s8:Age+s2:g6+s9:Age+s1:g11+s6:s7+g1:Age+g3:g11+s2:s9+s1:s8+g3:Age+
+g2:g7+s7:g10+s3:Height+g9:Gender+g8:g12+s5:g5+s7:g11+s5:Gender+g5:g9+s1:s9+s5:g6+
+s7:Height+s8:g3+s5:s9+s2:g10+s6:g6+s5:g12+g11:g12+s3:s7+g6:g12+g7:g11+s3:g5+
+s1:Height+s3:s8+s9:g10+s5:s7+s2:s3+s6:g7+g4:g5+s2:g3+s2:s8+s1:Age+g9:Height+
+s9:Height+s8:g10+g4:g9+s8:g12+s6:g9+g1:g10+g8:g9+s8:s9+s1:g9+s8:g5+s6:g11+
+g7:Height+g1:g5+g1:g3+g10:g12+s8:g9+s1:g8+g3:g9+g7:g10+s5:g1+s3:g2+g2:g11+
+s1:g5+g7:g9+g1:g2+s9:g5+s5:s6+s1:g2+g1:g4+g5:g12+s5:g4+s9:g4+g1:Gender+
+g12:Gender+s8:Height+g1:g11+s3:s9+s4:Age+s4:s8+g7:Age+g2:Height+g7:g12+s4:g12+Age:Gender+
+g1:g6+s7:g4+g4:Age+s4:g7+s9:Gender+s2:g8+s7:g3+s3:g4+s3:s4+s8:g6+s3:g12,<span class="dt">data=</span>body)
+
+model2=<span class="kw">lm</span>(Weight~.+s2:Height+s9:g3+s3:s6+s3:Gender+s1:s7+s1:g3+g8:g11+g6:g10+g5:g7+Age:Height+s5:g10+
+g4:g12+s6:g2+s1:s4+s1:g4+s1:g6+g3:g7+s4:g8+g6:g11+s2:Age+s6:s8+g9:g10+
+s6:g5+g5:g6+s8:g8+s6:Gender+s2:g12+s8:Gender+g3:g12+s9:g9+s7:g1+s4:s7+s3:g10+
+s8:g7+g12:Age+s4:Height+s7:g9+s1:s2+s6:Age+s5:g9+g12:Height+g3:g5+s3:Age+g7:g8+
+g3:g8+s7:g8+s1:Gender+g1:g12+s2:s5+s4:g11+s3:g7+g4:g7+s1:s5+s3:g1+s4:Gender+
+s2:s7+s5:g3+g5:g8+g10:g11+s7:Gender+g2:g5+g9:g11+g6:Age+g2:g8+s3:g6+g5:Age+
+g5:Gender+s3:g8+s4:g5+s4:g1+s2:Gender+s2:g5+s2:s6+s6:g4+g1:g7+s2:g4+s6:g12+
+s5:Age+s7:g5+g3:g10+g6:Gender+s9:g12+g3:Gender+s5:g7+g4:g6+s7:g12+s5:g8+s7:g2,<span class="dt">data=</span>body)
+
+model3 =<span class="st"> </span><span class="kw">lm</span>(Weight~.+g10:Height+s4:g2+s2:g11+s7:Age+g6:g8+g2:g4+s3:g11+s5:Height+s9:g11+s1:s6+s4:s6+
+s9:g1+s4:g6+s7:s9+g2:g10+s5:s8+s7:g7+s7:g6+g4:g11+g5:g11+s6:g8+s9:g6+
+s4:g4+s1:g7+g11:Gender+g3:g6+g9:g12+Height:Gender+g10:Age+g1:g9+g6:Height+g4:g10+g3:g4+
+s1:g1+g1:Height+s6:g1+s1:g12+g8:Age+g2:g9+s1:s3+s2:g1+g4:Height+g3:Height+s8:g11+
+g5:Height+s1:g10+g7:Gender+g2:g12+g6:g9+s4:s9+g1:g8+g2:Gender+s3:s5+s3:g9+s4:s5+
+g2:g6+s6:Height+s7:s8+g10:Gender+g9:Age+g6:g7+s6:g10+g4:g8+s8:g2+s9:g7+s8:g4+
+g5:g10+s6:g3+g11:Age+s2:g9+s5:g11+g8:g10+s8:g1+s4:g3+s4:g9+g2:Age+s3:g3+
+s4:g10+g8:Height+g8:Gender+s6:s9+s2:g7+s9:g8+g11:Height+s5:g2+s9:g2+g2:g3+s2:s4+
+s2:g2,<span class="dt">data=</span>body)
+
+<span class="co"># Choose significant from these</span>
+
+model1_aic =<span class="st"> </span><span class="kw">step</span>(model1,<span class="dt">direction=</span><span class="st">&quot;backward&quot;</span>,<span class="dt">trace=</span><span class="dv">0</span>)
+model2_aic =<span class="st"> </span><span class="kw">step</span>(model2,<span class="dt">direction=</span><span class="st">&quot;backward&quot;</span>,<span class="dt">trace=</span><span class="dv">0</span>)
+model3_aic =<span class="st"> </span><span class="kw">step</span>(model3,<span class="dt">direction=</span><span class="st">&quot;backward&quot;</span>,<span class="dt">trace=</span><span class="dv">0</span>)
+
+<span class="co"># How many signif parameters in total</span>
+<span class="kw">length</span>(<span class="kw">coef</span>(model3_aic))+<span class="kw">length</span>(<span class="kw">coef</span>(model2_aic))+<span class="kw">length</span>(<span class="kw">coef</span>(model1_aic))</code></pre></div>
+<pre><code>## [1] 169</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Combine these and quadratic terms</span>
+combined_model =<span class="st"> </span><span class="kw">lm</span>(Weight~s1+s2+s3+s4+s5+s7+s8+s9+g1+g2+g3+g4+g5+g6+g7+g8+g9+g10+g11+g12+Age+Height+Gender+
+s8:Age+s1:g11+g1:Age+g3:g11+s2:s9+s1:s8+g3:Age+g2:g7+s7:g10+g9:Gender+s7:g11+s5:g6+
+g11:g12+s3:s7+g6:g12+g7:g11+s3:g5+s1:Height+s2:s3+s2:s8+s1:Age+s9:Height+s8:g10+s8:s9+
+g1:g2+s9:g5+s1:g2+g1:g4+g5:g12+s5:g4+s9:g4+g12:Gender+s8:Height+Age:Gender+g1:g6+g4:Age+
+s4:g7+s8:g6+s3:g12+s3:s6+s3:Gender+g8:g11+g5:g7+Age:Height+s5:g10+s6:g2+s1:s4+s1:g4+g3:g7+g6:g11+s6:g5+
+s6:Gender+s2:g12+s7:g1+s3:g10+g12:Age+s4:Height+g3:g8+s2:s5+g4:g7+s1:s5+s5:g3+s7:Gender+
+g2:g5+g6:Age+s4:g1+s2:Gender+s2:g4+s7:g5+s9:g12+g3:Gender+g4:g6+s5:g8+s7:g2+s4:g2+g6:g8+
+g2:g4+s9:g11+s4:s6+s9:g1+g4:g11+g5:g11+s9:g6+g11:Gender+Height:Gender+g10:Age+g4:g10+
+g8:Age+g6:g9+g1:g8+g2:Gender+g2:g6+s7:s8+s6:g10+s8:g4+g8:g10+s8:g1+g2:Age+g8:Gender+s9:g8+g2:g3+
+<span class="kw">I</span>(s1^<span class="dv">2</span>)+<span class="kw">I</span>(s2^<span class="dv">2</span>)+<span class="kw">I</span>(s3^<span class="dv">2</span>)+<span class="kw">I</span>(s4^<span class="dv">2</span>)+<span class="kw">I</span>(s5^<span class="dv">2</span>)+<span class="kw">I</span>(s6^<span class="dv">2</span>)+<span class="kw">I</span>(s7^<span class="dv">2</span>)+<span class="kw">I</span>(s8^<span class="dv">2</span>)+<span class="kw">I</span>(s9^<span class="dv">2</span>)+<span class="kw">I</span>(g1^<span class="dv">2</span>)+<span class="kw">I</span>(g2^<span class="dv">2</span>)+<span class="kw">I</span>(g3^<span class="dv">2</span>)+
+<span class="st">  </span><span class="kw">I</span>(g4^<span class="dv">2</span>)+<span class="kw">I</span>(g5^<span class="dv">2</span>)+<span class="kw">I</span>(g6^<span class="dv">2</span>)+<span class="kw">I</span>(g7^<span class="dv">2</span>)+<span class="kw">I</span>(g8^<span class="dv">2</span>)+<span class="kw">I</span>(g9^<span class="dv">2</span>)+<span class="kw">I</span>(g10^<span class="dv">2</span>)+<span class="kw">I</span>(g11^<span class="dv">2</span>)+<span class="kw">I</span>(g12^<span class="dv">2</span>)+<span class="kw">I</span>(Age^<span class="dv">2</span>)+<span class="kw">I</span>(Weight^<span class="dv">2</span>)+<span class="kw">I</span>(Height^<span class="dv">2</span>)+<span class="kw">I</span>(Gender^<span class="dv">2</span>),<span class="dt">data =</span> body)
+
+<span class="co"># Number of parameters</span>
+<span class="kw">length</span>(<span class="kw">coef</span>(combined_model))</code></pre></div>
+<pre><code>## [1] 150</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># LOOCV RMSE</span>
+<span class="kw">calc_loocv_rmse</span>(combined_model)</code></pre></div>
+<pre><code>## [1] 0.5876</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Lets optimize</span>
+model_back_bic =<span class="st"> </span><span class="kw">step</span>(combined_model, <span class="dt">direction =</span> <span class="st">&quot;backward&quot;</span>, <span class="dt">k =</span> <span class="kw">log</span>(<span class="kw">length</span>(<span class="kw">resid</span>(combined_model))),<span class="dt">trace =</span> <span class="dv">0</span>)
+
+<span class="co"># LOOCV RMSE</span>
+<span class="kw">calc_loocv_rmse</span>(model_back_bic)</code></pre></div>
+<pre><code>## [1] 0.4618</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># No. of parameters</span>
+<span class="kw">length</span>(<span class="kw">coef</span>(model_back_bic))</code></pre></div>
+<pre><code>## [1] 43</code></pre>
+<p>We have <code>43</code> parameters in our final model that gives LOOCV RMSE less than <code>1.9</code> .</p>
 </div>
 <div id="exercise-3-ball-bearings" class="section level2">
 <h2>Exercise 3 (Ball Bearings)</h2>
@@ -644,17 +614,79 @@ L50_int_3 =<span class="st"> </span><span class="kw">lm</span>(<span class="kw">
 ## 
 ## data:  resid(L50_int_3)
 ## W = 0.99, p-value = 0.1</code></pre>
-<p><strong>(b)</strong> Find a model for <code>log(L50)</code> that does not reject the Shapiro-Wilk test at <span class="math inline">\(\alpha = 0.01\)</span> and obtains an <strong>adjusted</strong> <span class="math inline">\(R^2\)</span> higher than 0.60. You may not remove any observations, but may consider transformations. Your model should use fewer than 20 <span class="math inline">\(\beta\)</span> parameters.</p>
-<p><strong>Solution</strong></p>
-<p>Model found in previous section satisifies both conditions.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(L50_int_3)$adj.r.squared </code></pre></div>
-<pre><code>## [1] 0.6604</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">shapiro.test</span>(<span class="kw">resid</span>(L50_int_3))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Not okay</span>
+<span class="kw">length</span>(<span class="kw">coef</span>(L50_int_3))</code></pre></div>
+<pre><code>## [1] 40</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Optimize</span>
+L50_int_all =<span class="st"> </span><span class="kw">summary</span>(<span class="kw">regsubsets</span>(<span class="kw">log</span>(L50)~(.)^<span class="dv">3</span>+<span class="kw">I</span>(P^<span class="dv">2</span>)+<span class="kw">I</span>(Z^<span class="dv">2</span>)+<span class="kw">I</span>(D^<span class="dv">2</span>),<span class="dt">data=</span>bearings))</code></pre></div>
+<pre><code>## Warning in leaps.setup(x, y, wt = wt, nbest = nbest, nvmax = nvmax, force.in =
+## force.in, : 8 linear dependencies found</code></pre>
+<pre><code>## Reordering variables and trying again:</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(<span class="dt">best_r2_ind =</span> <span class="kw">which.max</span>(L50_int_all$adjr2))</code></pre></div>
+<pre><code>## [1] 9</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">coef</span>(L50_int_3)[L50_int_all$which[best_r2_ind,]]</code></pre></div>
+<pre><code>##     (Intercept)               P               D          I(P^2)             P:D 
+##       1.626e+01       3.068e-03      -4.914e+01       5.939e-08       6.151e-05 
+##      D:CompanyB        P:Z:Type    P:D:CompanyC P:CompanyB:Type    Z:D:CompanyB 
+##       8.152e+01       1.031e-05       1.408e-01              NA      -8.340e+00</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">better_mod =<span class="st"> </span><span class="kw">lm</span>(<span class="kw">log</span>(L50)~P+D+<span class="kw">I</span>(P^<span class="dv">2</span>)+P:D+D:Company+P:Z:Type+<span class="st"> </span>P:D:Company+P:Company:Type+Z:D:Company,<span class="dt">data=</span>bearings)
+
+<span class="co"># Evaluate</span>
+<span class="kw">length</span>(<span class="kw">coef</span>(better_mod))</code></pre></div>
+<pre><code>## [1] 15</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(better_mod)$adj.r.squared </code></pre></div>
+<pre><code>## [1] 0.6101</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">shapiro.test</span>(<span class="kw">resid</span>(better_mod))</code></pre></div>
 <pre><code>## 
 ##  Shapiro-Wilk normality test
 ## 
-## data:  resid(L50_int_3)
-## W = 0.99, p-value = 0.1</code></pre>
+## data:  resid(better_mod)
+## W = 0.98, p-value = 0.02</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Optimize</span>
+model_back_bic =<span class="st"> </span><span class="kw">step</span>(better_mod, <span class="dt">direction =</span> <span class="st">&quot;backward&quot;</span>, <span class="dt">k =</span> <span class="kw">log</span>(<span class="kw">length</span>(<span class="kw">resid</span>(better_mod))),<span class="dt">trace =</span> <span class="dv">0</span>)
+<span class="co"># Even more</span>
+model_final =<span class="st"> </span><span class="kw">lm</span>(<span class="kw">log</span>(L50)~P+D+<span class="kw">I</span>(P^<span class="dv">2</span>)+P:D+P:Z:Type+D:Company:Z+P:Company:Type,<span class="dt">data=</span>bearings)
+
+<span class="co"># Evaluate</span>
+<span class="kw">summary</span>(model_final)$adj.r.squared</code></pre></div>
+<pre><code>## [1] 0.6</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">length</span>(<span class="kw">coef</span>(model_final))</code></pre></div>
+<pre><code>## [1] 11</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">shapiro.test</span>(<span class="kw">resid</span>(model_final))</code></pre></div>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  resid(model_final)
+## W = 0.99, p-value = 0.05</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Optimze</span>
+
+model =<span class="st"> </span><span class="kw">lm</span>(<span class="kw">log</span>(L50)~P+P:D +<span class="st"> </span>D+<span class="kw">I</span>(P^<span class="dv">2</span>)  +P:Z:Type+P:Type:Company+D:Z,<span class="dt">data=</span>bearings)
+<span class="co"># Evaluate</span>
+<span class="kw">length</span>(<span class="kw">coef</span>(model))</code></pre></div>
+<pre><code>## [1] 9</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(model)$adj.r.squared</code></pre></div>
+<pre><code>## [1] 0.5552</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">shapiro.test</span>(<span class="kw">resid</span>(model))</code></pre></div>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  resid(model)
+## W = 0.98, p-value = 0.02</code></pre>
+<p><strong>(b)</strong> Find a model for <code>log(L50)</code> that does not reject the Shapiro-Wilk test at <span class="math inline">\(\alpha = 0.01\)</span> and obtains an <strong>adjusted</strong> <span class="math inline">\(R^2\)</span> higher than 0.60. You may not remove any observations, but may consider transformations. Your model should use fewer than 20 <span class="math inline">\(\beta\)</span> parameters.</p>
+<p><strong>Solution</strong></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">better_mod =<span class="st"> </span><span class="kw">lm</span>(<span class="kw">log</span>(L50)~P+D+<span class="kw">I</span>(P^<span class="dv">2</span>)+P:D+D:Company+P:Z:Type+<span class="st"> </span>P:D:Company+P:Company:Type+Z:D:Company,<span class="dt">data=</span>bearings)
+
+<span class="co"># Evaluate</span>
+<span class="kw">length</span>(<span class="kw">coef</span>(better_mod))</code></pre></div>
+<pre><code>## [1] 15</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(better_mod)$adj.r.squared </code></pre></div>
+<pre><code>## [1] 0.6101</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">shapiro.test</span>(<span class="kw">resid</span>(better_mod))</code></pre></div>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  resid(better_mod)
+## W = 0.98, p-value = 0.02</code></pre>
 </div>
 <div id="exercise-4-free-points" class="section level2">
 <h2>Exercise 4 (Free Points)</h2>
