@@ -46,9 +46,14 @@ Alok K. Shukla | alokks2
 ### Dataset 
 
 A snippet. (Only first few columns).
-```{r kable,message=FALSE,echo=FALSE}
+```{r kable,message=FALSE,echo=FALSE,warning=FALSE}
 
 library(readr)
+library(ggplot2)
+library(leaps)
+calc_loocv_rmse = function(model) {
+sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+}
 mobility <- read.csv("mobility.csv")
 
 knitr::kable(head(mobility)[,1:7])
@@ -107,6 +112,8 @@ The data file `mobility.csv` has information on 741 communities. The variable we
 42. Name: the name of principal city or town.
 43. State: the state of the principal city or town of the community.
 
+
+
 ## Exploratory Data Analysis
 
 ### Map of mobility.
@@ -122,7 +129,145 @@ USAMap = ggmap(get_googlemap(center=usa_center, scale=1, zoom=2), extent="normal
 USAMap + geom_point(aes(x=mobility$Longitude, y=mobility$Latitude), data=mobility, col="red", alpha=0.4,size=mobility$Mobility*8) + xlim(range(mobility$Longitude)) + ylim(range(mobility$Latitude))
 ```
 
+### Scatterplots
+1. Population
+```{r,warning=FALSE,message=FALSE}
+  
+  popData = as.data.frame(cbind(mobility$Population,mobility$Mobility))
+  popData = popData[complete.cases(popData),]
+  colnames(popData) = c("Pop","Mobility")
+  pred.Pop <- predict(lm(Mobility ~ Pop, data = popData))
+
+  ## Added mapping
+  p1 <- ggplot(popData, aes(x = Pop, y = Mobility))
+  ## Overridden
+  p1 + geom_point(col="blue") +
+    geom_line(aes(y = pred.Pop,col="orange"))+geom_smooth()
+```
+
+2. Mean household income per capita
+
+```{r,warning=FALSE,message=FALSE}
+  
+  incomeData = as.data.frame(cbind(mobility$Income,mobility$Mobility))
+  incomeData = incomeData[complete.cases(incomeData),]
+  colnames(incomeData) = c("Income","Mobility")
+  pred.Inc <- predict(lm(Mobility ~ Income, data = incomeData))
+
+  ## Added mapping
+  p1 <- ggplot(incomeData, aes(x = Income, y = Mobility))
+  ## Overridden
+  p1 + geom_point(col="blue") +
+    geom_line(aes(y = pred.Inc,col="orange"))+geom_smooth()
+```
+3. Racial segregation
+
+```{r,warning=FALSE,message=FALSE}
+  
+  raceData = as.data.frame(cbind(mobility$Seg_racial,mobility$Mobility))
+  raceData = raceData[complete.cases(raceData),]
+  colnames(raceData) = c("Racial_Seg","Mobility")
+  pred.Race <- predict(lm(Mobility ~ Racial_Seg, data = raceData))
+
+  ## Added mapping
+  p1 <- ggplot(raceData, aes(x = Racial_Seg, y = Mobility))
+  ## Overridden
+  p1 + geom_point(col="blue") +
+    geom_line(aes(y = pred.Race,col="orange"))+geom_smooth()
+```
+
+4. Income share of the top 1%
+
+```{r,warning=FALSE,message=FALSE}
+  
+  incomeData = as.data.frame(cbind(mobility$Share01,mobility$Mobility))
+  incomeData = incomeData[complete.cases(incomeData),]
+  colnames(incomeData) = c("Share01","Mobility")
+  pred.Inc <- predict(lm(Mobility ~ Share01, data = incomeData))
+
+  ## Added mapping
+  p1 <- ggplot(incomeData, aes(x = Share01, y = Mobility))
+  ## Overridden
+  p1 + geom_point(col="blue") +
+    geom_line(aes(y = pred.Inc,col="orange"))+geom_smooth()
+```
+5. Mean school expenditures per pupil
+
+```{r,warning=FALSE,message=FALSE}
+  
+  schoolData = as.data.frame(cbind(mobility$School_spending,mobility$Mobility))
+  schoolData = schoolData[complete.cases(schoolData),]
+  colnames(schoolData) = c("SchoolSpend","Mobility")
+  pred.Sch <- predict(lm(Mobility ~ SchoolSpend, data = schoolData))
+
+  ## Added mapping
+  p1 <- ggplot(schoolData, aes(x = SchoolSpend, y = Mobility))
+  ## Overridden
+  p1 + geom_point(col="blue") +
+    geom_line(aes(y = pred.Sch,col="orange"))+geom_smooth()
+```
+
+6. Violent crime rate
+
+```{r,warning=FALSE,message=FALSE}
+  
+  crimeData = as.data.frame(cbind(mobility$Violent_crime,mobility$Mobility))
+  crimeData = crimeData[complete.cases(crimeData),]
+  colnames(crimeData) = c("ViolentCrime","Mobility")
+  pred.Sch <- predict(lm(Mobility ~ ViolentCrime, data = crimeData))
+
+  ## Added mapping
+  p1 <- ggplot(crimeData, aes(x = ViolentCrime, y = Mobility))
+  ## Overridden
+  p1 + geom_point(col="blue") +
+    geom_line(aes(y = pred.Sch,col="orange"))+geom_smooth()
+```
+7. Fraction of workers with short commutes.
+
+```{r,warning=FALSE,message=FALSE}
+  
+  commuteData = as.data.frame(cbind(mobility$Commute,mobility$Mobility))
+  commuteData = commuteData[complete.cases(commuteData),]
+  colnames(commuteData) = c("ShortCommute","Mobility")
+  pred.Comm <- predict(lm(Mobility ~ ShortCommute, data = commuteData))
+
+  ## Added mapping
+  p1 <- ggplot(commuteData, aes(x = ShortCommute, y = Mobility))
+  ## Overridden
+  p1 + geom_point(col="blue") +
+    geom_line(aes(y = pred.Comm,col="orange"))+geom_smooth()
+```
+
+
+### Linear Regression
+
+1. All appropriate co-variates
+
+```{r,warning=FALSE,message=FALSE}
+library(leaps)
+  
+  mobilityData = mobility[complete.cases(mobility),]
+  modelAll = lm(Mobility~.-Name-State-ID,data=mobilityData)
+  nrow(mobilityData)/3
+  model = summary(regsubsets(Mobility~.-Name-State-ID,data=mobilityData))
+  (best_r2_ind = which.max(model$adjr2))
+  model$which[best_r2_ind, ]
+  # Lets fit this model
+  coef(modelAll)[model$which[best_r2_ind, ]]
+  better_model = lm(Mobility~ (Black+Seg_racial+Commute+Progressivity+Manufacturing+Religious+Single_mothers+Latitude)^2+I(Black^2)+I(Seg_racial^2)+I(Progressivity^2)+I(Manufacturing^2)+I(Religious^2)+I(Single_mothers^2)+I(Latitude^2),data=mobilityData)
+  model_back_bic = step(better_model, direction = "backward", k = log(length(resid(better_model))),trace = 0)
+  
+  library(faraway)
+  drops <- c("ID","Name","State","Urban")
+  onlyNumericData = mobilityData[ , !(names(mobilityData) %in% drops)]
+  round(cor(onlyNumericData), 2)
+  
+  
+```
+
 ## Initial Modeling
+
+
 
 ## Diagnostics/Model Selection
 
