@@ -309,6 +309,41 @@ summary(model11)$adj.r.squared
 
 ```
 
+```{r, echo = FALSE}
+plot_fitted_resid = function(model, pointcol = "dodgerblue", linecol = "darkorange") {
+  plot(fitted(model), resid(model), 
+       col = pointcol, pch = 20, cex = 1.5,
+       xlab = "Fitted", ylab = "Residuals")
+  abline(h = 0, col = linecol, lwd = 2)
+}
+
+plot_qq = function(model, pointcol = "dodgerblue", linecol = "darkorange") {
+  qqnorm(resid(model), col = pointcol, pch = 20, cex = 1.5)
+  qqline(resid(model), col = linecol, lwd = 2)
+}
+```
+
+**Solution**
+
+- Linearity and Constant Variance
+```{r}
+plot_fitted_resid(model11)
+```
+
+Linearity - Not Okay, Constant Variance - Not Okay
+
+- Normality of errors
+
+```{r}
+par(mfrow=c(1,2))
+hist(resid(model11),
+     xlab   = "Residuals",
+     main   = "Histogram of Residuals",
+     col    = "darkorange",
+     border = "dodgerblue")
+plot_qq(model11)
+```
+
 
 ## Initial Modeling
 
