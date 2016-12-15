@@ -3,13 +3,13 @@ title: 'STAT 420: Data Analysis Project'
 author: "Apurva V. Hari, Alok K. Shukla"
 date: "11/13/2016"
 output:
-  html_document:
-    highlight: tango
-    theme: flatly
-    toc: yes
   pdf_document:
     fig_caption: yes
     highlight: tango
+    toc: yes
+  html_document:
+    highlight: tango
+    theme: flatly
     toc: yes
   word_document:
     toc: yes
@@ -42,30 +42,50 @@ Alok K. Shukla | alokks2
 <br/>
 \newline
  *A survey of economic mobility across generations in contemporary USA.*
+ 
+The data come from a large study, based on tax records, which allowed researchers to link the income of adults to the income of their parents several decades previously. For privacy reasons, we don't have that individual-level data, but we do have aggregate statistics about economic mobility for several hundred communities, containing most of the American population, and covariate information about those communities.
 
-### Dataset 
+#### Dataset 
 
 A snippet. (Only first few columns).
 ```{r kable,message=FALSE,echo=FALSE,warning=FALSE}
-
+# Libraries, Helpers
 library(readr)
+library(faraway)
+library(MASS)
 library(ggplot2)
+library(ggmap)
+library(rpart)
+library(rpart.plot)
 library(leaps)
 library(tree)
+library(ggplot2)
+library(corrplot)
+library(lmtest)
 calc_loocv_rmse = function(model) {
 sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
 }
+
+
+plot_fitted_resid = function(model, pointcol = "dodgerblue", linecol = "darkorange") {
+  plot(fitted(model), resid(model), 
+       col = pointcol, pch = 20, cex = 1.5,
+       xlab = "Fitted", ylab = "Residuals")
+  abline(h = 0, col = linecol, lwd = 2)
+}
+
+plot_qq = function(model, pointcol = "dodgerblue", linecol = "darkorange") {
+  qqnorm(resid(model), col = pointcol, pch = 20, cex = 1.5)
+  qqline(resid(model), col = linecol, lwd = 2)
+}
+
+# Data
 mobility <- read.csv("mobility.csv")
 mobility$Urban = as.factor(mobility$Urban)
 mobilityData = mobility[complete.cases(mobility),]
 attach(mobilityData)
 knitr::kable(head(mobility)[,1:7])
-
 ```
-
-#### Background
-
-The data come from a large study, based on tax records, which allowed researchers to link the income of adults to the income of their parents several decades previously. For privacy reasons, we don???t have that individual-level data, but we do have aggregate statistics about economic mobility for several hundred communities, containing most of the American population, and covariate information about those communities. 
 
 #### Description
 
@@ -116,14 +136,12 @@ The data file `mobility.csv` has information on 741 communities. The variable we
 43. State: the state of the principal city or town of the community.
 
 
+## Methods
+### Exploratory Data Analysis
 
-## Exploratory Data Analysis
-
-### Map of mobility.
+#### Map of mobility.
 
 ```{r,warning=FALSE,message=FALSE,tidy=TRUE}
-library(ggplot2)
-library(ggmap)
 ## Central co-ordinates of the region we are interested in.
 usa_center = c(mean(mobility$Longitude),mean(mobility$Latitude))
 ## Get map
@@ -132,23 +150,27 @@ USAMap = ggmap(get_googlemap(center=usa_center, scale=1, zoom=2), extent="normal
 USAMap + geom_point(aes(x=mobility$Longitude, y=mobility$Latitude), data=mobility, col="red", alpha=0.4,size=mobility$Mobility*8) + xlim(range(mobility$Longitude)) + ylim(range(mobility$Latitude))
 ```
 
-### Scatterplots
-1. Population
+Some visual insights: Dakota, Minnesota, Illinois (yayy!) in the central USA have a higher Mobility than Coastal States. East coast has more data points; west is relatively sparse. 
+#### Scatterplots
+
+*Population*
+
 ```{r,warning=FALSE,message=FALSE}
   
-  popData = as.data.frame(cbind(mobility$Population,mobility$Mobility,mobility$Urban))
+  popData = as.data.frame(cbind(mobility$Population,mobility$Mobility))
   popData = popData[complete.cases(popData),]
-  colnames(popData) = c("Pop","Mobility","Urban")
+  colnames(popData) = c("Pop","Mobility")
   pred.Pop <- predict(lm(Mobility ~ Pop, data = popData))
 
-  ## Added mapping
-  p1 <- ggplot(popData, aes(x = Pop, y = Mobility,color=Urban))
-  ## Overridden
-  p1 + geom_point() +
-    geom_line(aes(y = pred.Pop))+geom_smooth() 
+  
+  p1 <- ggplot(popData, aes(x = Pop, y = Mobility))
+ 
+  p1 + geom_point(col="blue") + geom_line(aes(y = pred.Pop,col="orange"))+ geom_smooth() 
 ```
+<br/>
+There's relatively much higher variance in Mobility of regions with less population and they are also regions of highest Mobility.
 
-2. Mean household income per capita
+*Mean household income per capita*
 
 ```{r,warning=FALSE,message=FALSE}
   
@@ -157,13 +179,16 @@ USAMap + geom_point(aes(x=mobility$Longitude, y=mobility$Latitude), data=mobilit
   colnames(incomeData) = c("Income","Mobility")
   pred.Inc <- predict(lm(Mobility ~ Income, data = incomeData))
 
-  ## Added mapping
+  
   p1 <- ggplot(incomeData, aes(x = Income, y = Mobility))
-  ## Overridden
+ 
   p1 + geom_point(col="blue") +
     geom_line(aes(y = pred.Inc,col="orange"))+geom_smooth()
 ```
-3. Racial segregation
+<br/>
+Not a clear relationship; middle income groups have highest range of Mobility.
+
+*Racial segregation*
 
 ```{r,warning=FALSE,message=FALSE}
   
@@ -172,14 +197,16 @@ USAMap + geom_point(aes(x=mobility$Longitude, y=mobility$Latitude), data=mobilit
   colnames(raceData) = c("Racial_Seg","Mobility")
   pred.Race <- predict(lm(Mobility ~ Racial_Seg, data = raceData))
 
-  ## Added mapping
+  
   p1 <- ggplot(raceData, aes(x = Racial_Seg, y = Mobility))
-  ## Overridden
+ 
   p1 + geom_point(col="blue") +
     geom_line(aes(y = pred.Race,col="orange"))+geom_smooth()
 ```
+<br/>
+Areas with less racial segregation see higher range of Mobility.
 
-4. Income share of the top 1%
+*Income share of the top 1%*
 
 ```{r,warning=FALSE,message=FALSE}
   
@@ -188,13 +215,17 @@ USAMap + geom_point(aes(x=mobility$Longitude, y=mobility$Latitude), data=mobilit
   colnames(incomeData) = c("Share01","Mobility")
   pred.Inc <- predict(lm(Mobility ~ Share01, data = incomeData))
 
-  ## Added mapping
+  
   p1 <- ggplot(incomeData, aes(x = Share01, y = Mobility))
-  ## Overridden
+ 
   p1 + geom_point(col="blue") +
     geom_line(aes(y = pred.Inc,col="orange"))+geom_smooth()
 ```
-5. Mean school expenditures per pupil
+
+<br/>
+An interesting relationship. Areas with less share in top 1% see a higher range of Mobility.
+
+*Mean school expenditures per pupil*
 
 ```{r,warning=FALSE,message=FALSE}
   
@@ -203,14 +234,16 @@ USAMap + geom_point(aes(x=mobility$Longitude, y=mobility$Latitude), data=mobilit
   colnames(schoolData) = c("SchoolSpend","Mobility")
   pred.Sch <- predict(lm(Mobility ~ SchoolSpend, data = schoolData))
 
-  ## Added mapping
+  
   p1 <- ggplot(schoolData, aes(x = SchoolSpend, y = Mobility))
-  ## Overridden
+ 
   p1 + geom_point(col="blue") +
     geom_line(aes(y = pred.Sch,col="orange"))+geom_smooth()
 ```
+<br/>
+More expenditure, more Mobility, intuitive.
 
-6. Violent crime rate
+*Violent crime rate*
 
 ```{r,warning=FALSE,message=FALSE}
   
@@ -219,13 +252,17 @@ USAMap + geom_point(aes(x=mobility$Longitude, y=mobility$Latitude), data=mobilit
   colnames(crimeData) = c("ViolentCrime","Mobility")
   pred.Sch <- predict(lm(Mobility ~ ViolentCrime, data = crimeData))
 
-  ## Added mapping
+  
   p1 <- ggplot(crimeData, aes(x = ViolentCrime, y = Mobility))
-  ## Overridden
+ 
   p1 + geom_point(col="blue") +
     geom_line(aes(y = pred.Sch,col="orange"))+geom_smooth()
 ```
-7. Fraction of workers with short commutes.
+<br/>
+
+Less crime, more Mobility; intuitive.
+
+*Fraction of workers with short commutes.*
 
 ```{r,warning=FALSE,message=FALSE}
   
@@ -234,45 +271,73 @@ USAMap + geom_point(aes(x=mobility$Longitude, y=mobility$Latitude), data=mobilit
   colnames(commuteData) = c("ShortCommute","Mobility")
   pred.Comm <- predict(lm(Mobility ~ ShortCommute, data = commuteData))
 
-  ## Added mapping
+  
   p1 <- ggplot(commuteData, aes(x = ShortCommute, y = Mobility))
-  ## Overridden
+ 
   p1 + geom_point(col="blue") +
     geom_line(aes(y = pred.Comm,col="orange"))+geom_smooth()
 ```
 
+<br/>
 
-### Linear Regression
+Nearby jobs, more Mobility :)
 
-1. All appropriate co-variates
+**Note:** All of these individual predictors aren't considered in isolation; so the observed variations as they appear on the plots might not really be because of the predictor considered.
+
+### Model Selection
+
+0. Tree model, Correlations
 
 ```{r,warning=FALSE,message=FALSE}
 
+  # Dropping unique IDs and Names; 
+  # and also States (too many levels.)
   
-  
-  drops <- c("Name", "ID","State","Urban")
+  drops <- c("Name", "ID","State")
   dataset = mobilityData[ , !(names(mobilityData) %in% drops)]
-  model = tree(Mobility~.,data=dataset)
   
+  # Lets see interactions in a tree model
+  form <- as.formula(Mobility ~ .)
+  model <- rpart(form,data=dataset)
+  prp(model)
+  
+  # Correlations
+  data = na.omit(mobility)
+  #round(cor(data[sapply(data,is.numeric)], use="pairwise.complete.obs"),2)
+  corrplot(cor(data[sapply(data,is.numeric)]),method ="ellipse",
+         title =" Correlation Matrix Graph",tl.cex = .5,tl.pos ="lt",tl.col ="dodgerblue" )
+  
+```  
+
+Most important  explanatory variable is `Commute`; and the threshold value seperating low and high values of `Commute` is $0.511$ . The fact that both limbs are branched means that other variables explain a significant amount of the variation in `Mobility` levels for values of `Commute`. 
+
+High levels of correlation amongst multiple predictors is also confirmed by the `corrplot`.
+
+1. First attempt with linear and quadratic relationships.
+
+```{r,warning=FALSE,message=FALSE} 
   
   # 1st model
-  model1 = lm(Mobility~Population+Black+Seg_racial+Seg_income+Seg_poverty+Seg_affluence+Commute+Income+Gini+Share01+Gini_99+Middle_class+Local_tax_rate+Local_gov_spending+Progressivity+EITC+School_spending+Student_teacher_ratio+Test_scores+HS_dropout+Colleges+Tuition+Graduation+Labor_force_participation+Manufacturing+Chinese_imports+Teenage_labor+Migration_in+Migration_out+Foreign_born+Social_capital+Religious+Violent_crime+Single_mothers+Divorced+Married+Longitude+Latitude+I(Population^2)+I(Black^2)+I(Seg_racial^2)+I(Seg_income^2)+I(Seg_poverty^2)+I(Seg_affluence^2)+I(Commute^2)+I(Income^2)+I(Gini^2)+I(Share01^2)+I(Gini_99^2)+I(Middle_class^2)+I(Local_tax_rate^2)+I(Local_gov_spending^2)+I(Progressivity^2)+I(EITC^2)+I(School_spending^2)+I(Student_teacher_ratio^2)+I(Test_scores^2)+I(HS_dropout^2)+I(Colleges^2)+I(Tuition^2)+I(Graduation^2)+I(Labor_force_participation^2)+I(Manufacturing^2)+I(Chinese_imports^2)+I(Teenage_labor^2)+I(Migration_in^2)+I(Migration_out^2)+I(Foreign_born^2)+I(Social_capital^2)+I(Religious^2)+I(Violent_crime^2)+I(Single_mothers^2)+I(Divorced^2)+I(Married^2)+I(Longitude^2)+I(Latitude^2),data=dataset)
+  model1 = lm(Mobility~Population+Black+Urban+Seg_racial+Seg_income+Seg_poverty+Seg_affluence+Commute+Income+Gini+Share01+Gini_99+Middle_class+Local_tax_rate+Local_gov_spending+Progressivity+EITC+School_spending+Student_teacher_ratio+Test_scores+HS_dropout+Colleges+Tuition+Graduation+Labor_force_participation+Manufacturing+Chinese_imports+Teenage_labor+Migration_in+Migration_out+Foreign_born+Social_capital+Religious+Violent_crime+Single_mothers+Divorced+Married+Longitude+Latitude+I(Population^2)+I(Black^2)+I(Seg_racial^2)+I(Seg_income^2)+I(Seg_poverty^2)+I(Seg_affluence^2)+I(Commute^2)+I(Income^2)+I(Gini^2)+I(Share01^2)+I(Gini_99^2)+I(Middle_class^2)+I(Local_tax_rate^2)+I(Local_gov_spending^2)+I(Progressivity^2)+I(EITC^2)+I(School_spending^2)+I(Student_teacher_ratio^2)+I(Test_scores^2)+I(HS_dropout^2)+I(Colleges^2)+I(Tuition^2)+I(Graduation^2)+I(Labor_force_participation^2)+I(Manufacturing^2)+I(Chinese_imports^2)+I(Teenage_labor^2)+I(Migration_in^2)+I(Migration_out^2)+I(Foreign_born^2)+I(Social_capital^2)+I(Religious^2)+I(Violent_crime^2)+I(Single_mothers^2)+I(Divorced^2)+I(Married^2)+I(Longitude^2)+I(Latitude^2),data=dataset)
   
   # Model 2
   model2 <- step(model1,trace=0)
-  summary(model2)
+  #summary(model2)
+  # Insignificant
+  summary(model2)$coefficients[summary(model2)$coefficients[ ,4] >= 0.05,]
   
-  # Model 3
+  # Model 3, Removed insignificant from previous
   model3 <- update(model2,~.-I(Seg_poverty^2)-Teenage_labor-Seg_racial-I(EITC^2)-I(Migration_in^2))
-  summary(model3)
+  #summary(model3)
+  
+  # Lets tag this model for compariosn later on
+  firstModel = model3
   
 ```
 
-```{r}
-interactions = read.csv("Interactions.csv")
-interactions2 <- interactions[sample(nrow(interactions)),]
-write.csv(interactions2,"Shuffled.csv")
-shuffled = read.csv("Distributed.csv")
+2. All 2-Way interactions compared. We have $700+$ 2-Way interactions; so we fit them randomly shuffled and distributed in 7 models; since we should only estimate around $100$ predictors in one model; for given dataset size ($~400$).
+
+```{r,warning=FALSE,message=FALSE} 
 
 ## 7 models now
 model4 = lm(Mobility ~ .+School_spending:Chinese_imports+Chinese_imports:Foreign_born+Middle_class:Teenage_labor+Commute:Migration_in+Labor_force_participation:Single_mothers+Gini:Middle_class+Test_scores:Migration_in+Seg_racial:Graduation+Population:Longitude+Commute:Graduation+Local_tax_rate:HS_dropout+Gini_99:Violent_crime+Migration_in:Married+Colleges:Migration_in+Student_teacher_ratio:Migration_out+Manufacturing:Latitude+Black:Migration_in+Seg_affluence:Graduation+Black:Test_scores+Local_gov_spending:Colleges+Gini:Married+Black:Tuition+Seg_affluence:Progressivity+Black:Middle_class+EITC:Chinese_imports+Seg_affluence:Migration_in+Graduation:Longitude+Test_scores:Social_capital+Seg_poverty:Graduation+Colleges:Single_mothers+Chinese_imports:Religious+Income:Share01+Population:Test_scores+Seg_affluence:Tuition+Local_gov_spending:Longitude+Income:Married+Black:Social_capital+School_spending:Divorced+EITC:Violent_crime+Progressivity:Chinese_imports+Seg_racial:Student_teacher_ratio+Violent_crime:Married+Commute:Income+Migration_out:Violent_crime+Seg_affluence:Income+Colleges:Manufacturing+Seg_income:HS_dropout+Test_scores:Married+Colleges:Divorced+Seg_poverty:Gini_99+Share01:Latitude+Seg_racial:Chinese_imports+Income:Foreign_born+Middle_class:School_spending+Labor_force_participation:Longitude+Progressivity:Violent_crime+Migration_in:Violent_crime+Seg_racial:Migration_in+Black:Share01+Population:Social_capital+Seg_poverty:EITC+Black:Student_teacher_ratio+Student_teacher_ratio:Longitude+School_spending:Religious+Labor_force_participation:Chinese_imports+School_spending:Longitude+Gini:Share01+Migration_out:Religious+Local_tax_rate:Teenage_labor+Seg_affluence:Migration_out+Income:Latitude+Manufacturing:Single_mothers+Local_gov_spending:School_spending+School_spending:Violent_crime+Seg_poverty:Religious+Gini_99:Tuition+Student_teacher_ratio:HS_dropout+Seg_racial:Manufacturing+Manufacturing:Violent_crime+Seg_affluence:Single_mothers+Seg_racial:Local_gov_spending+Gini_99:Migration_in+EITC:Graduation+Population:Foreign_born+Gini_99:Local_gov_spending+EITC:Test_scores+Gini_99:Single_mothers+Seg_racial:Seg_affluence+Population:Income+Local_tax_rate:Graduation+Social_capital:Violent_crime+Seg_affluence:Married+Seg_poverty:Middle_class+Commute:Local_tax_rate+HS_dropout:Latitude+Local_gov_spending:Manufacturing+Seg_poverty:Single_mothers+Population:Single_mothers+Population:Latitude+Migration_in:Divorced,data=dataset)
@@ -300,60 +365,317 @@ model10 = lm(Mobility~.+Test_scores:Longitude+Gini:Latitude+EITC:Latitude+Gini:M
 
 model11 = lm(Mobility~.+Middle_class:Teenage_labor+Gini_99:Violent_crime+Black:Test_scores+Seg_affluence:Progressivity+Seg_affluence:Migration_in+Labor_force_participation:Longitude+Seg_poverty:EITC+Student_teacher_ratio:Longitude+School_spending:Religious+Local_tax_rate:Teenage_labor+Seg_poverty:Middle_class+Colleges:Latitude+Tuition:Migration_out+Gini:Divorced+Seg_poverty:HS_dropout+Local_tax_rate:Colleges+Seg_affluence:Local_tax_rate+Seg_racial:HS_dropout+Gini:Local_gov_spending+Progressivity:Religious+Middle_class:HS_dropout+Tuition:Latitude+Commute:Progressivity+Seg_racial:Progressivity+Student_teacher_ratio:Religious+Middle_class:Manufacturing+HS_dropout:Divorced+Test_scores:Religious+Seg_income:Middle_class+Migration_in:Migration_out+Foreign_born:Latitude+Migration_in:Social_capital+School_spending:Test_scores+Gini_99:Test_scores+Commute:Student_teacher_ratio+Commute:Migration_out+Test_scores:Latitude+Commute:Foreign_born+Gini_99:Colleges+Commute:Labor_force_participation+Local_tax_rate:Progressivity+Commute:Religious+Local_tax_rate:Social_capital+Seg_racial:Married+Share01:Test_scores+Income:Single_mothers+Income:Colleges+Middle_class:Foreign_born+Seg_poverty:Married+HS_dropout:Single_mothers+Religious:Divorced+Gini_99:Latitude+Progressivity:School_spending+Seg_racial:Colleges+Commute:Test_scores+Gini_99:HS_dropout+Income:Social_capital+Gini_99:Divorced+Population:Progressivity+Seg_poverty:Progressivity+Black:Divorced+Commute:Middle_class+Gini_99:Manufacturing+HS_dropout:Chinese_imports+Labor_force_participation:Teenage_labor+Progressivity:Colleges+Foreign_born:Social_capital+Seg_racial:Seg_income+Share01:HS_dropout+Middle_class:Latitude+Test_scores:Longitude+Gini:Latitude+Seg_income:Manufacturing+Test_scores:HS_dropout+Progressivity:Graduation+Middle_class:Violent_crime+Middle_class:Single_mothers+HS_dropout:Religious+Black:HS_dropout+Gini:Social_capital+Population:EITC+EITC:Colleges,data=dataset)
 
+# See if we are not estimating too many parameters
+nrow(dataset)/3 >length(coef(model11))
+
+# Lets tag this model
+secondModel = model11
+```
+
+3. Final take at improvement
+
+```{r,warning=FALSE,message=FALSE} 
+mod_both_aic = step(model3,model11,direction = "both",trace=0)
+                     
+# Tag this too.
+thirdModel = mod_both_aic
+
+```
+
+4. Transformations?
 
 
-# Evaluate
-length(coef(model11))
-summary(model11)$adj.r.squared 
+```{r,warning=FALSE,message=FALSE}
+par(mfrow=c(1,3))
+boxcox(firstModel, plotit = TRUE)
+boxcox(secondModel, plotit = TRUE)
+boxcox(thirdModel, plotit = TRUE)
+
+# Log Transforms
+firstLog = lm(log(Mobility)~Seg_income+Seg_poverty+Commute+Income+Gini+Share01+Middle_class+Progressivity+EITC+School_spending+HS_dropout+Colleges+Labor_force_participation+Manufacturing+Social_capital+Single_mothers+Longitude+Latitude+I(Seg_racial^2)+I(Commute^2)+I(Gini_99^2)+I(Middle_class^2)+I(School_spending^2)+I(HS_dropout^2)+I(Social_capital^2)+I(Religious^2)+I(Longitude^2)+I(Latitude^2),data=dataset)
+secondLog = lm(log(Mobility)~.+Middle_class:Teenage_labor+Gini_99:Violent_crime+Black:Test_scores+Seg_affluence:Progressivity+Seg_affluence:Migration_in+Labor_force_participation:Longitude+Seg_poverty:EITC+Student_teacher_ratio:Longitude+School_spending:Religious+Local_tax_rate:Teenage_labor+Seg_poverty:Middle_class+Colleges:Latitude+Tuition:Migration_out+Gini:Divorced+Seg_poverty:HS_dropout+Local_tax_rate:Colleges+Seg_affluence:Local_tax_rate+Seg_racial:HS_dropout+Gini:Local_gov_spending+Progressivity:Religious+Middle_class:HS_dropout+Tuition:Latitude+Commute:Progressivity+Seg_racial:Progressivity+Student_teacher_ratio:Religious+Middle_class:Manufacturing+HS_dropout:Divorced+Test_scores:Religious+Seg_income:Middle_class+Migration_in:Migration_out+Foreign_born:Latitude+Migration_in:Social_capital+School_spending:Test_scores+Gini_99:Test_scores+Commute:Student_teacher_ratio+Commute:Migration_out+Test_scores:Latitude+Commute:Foreign_born+Gini_99:Colleges+Commute:Labor_force_participation+Local_tax_rate:Progressivity+Commute:Religious+Local_tax_rate:Social_capital+Seg_racial:Married+Share01:Test_scores+Income:Single_mothers+Income:Colleges+Middle_class:Foreign_born+Seg_poverty:Married+HS_dropout:Single_mothers+Religious:Divorced+Gini_99:Latitude+Progressivity:School_spending+Seg_racial:Colleges+Commute:Test_scores+Gini_99:HS_dropout+Income:Social_capital+Gini_99:Divorced+Population:Progressivity+Seg_poverty:Progressivity+Black:Divorced+Commute:Middle_class+Gini_99:Manufacturing+HS_dropout:Chinese_imports+Labor_force_participation:Teenage_labor+Progressivity:Colleges+Foreign_born:Social_capital+Seg_racial:Seg_income+Share01:HS_dropout+Middle_class:Latitude+Test_scores:Longitude+Gini:Latitude+Seg_income:Manufacturing+Test_scores:HS_dropout+Progressivity:Graduation+Middle_class:Violent_crime+Middle_class:Single_mothers+HS_dropout:Religious+Black:HS_dropout+Gini:Social_capital+Population:EITC+EITC:Colleges,data=dataset)
+thirdLog = lm(log(Mobility)~Seg_income+Seg_poverty+Commute+Income+Gini+Share01+Middle_class+Progressivity+EITC+School_spending+HS_dropout+Colleges+Labor_force_participation+Manufacturing+Social_capital+Single_mothers+Longitude+Latitude+I(Seg_racial^2)+
++I(Commute^2)+I(Gini_99^2)+I(Middle_class^2)+I(School_spending^2)+I(HS_dropout^2)+I(Social_capital^2)+I(Religious^2)+I(Longitude^2)+I(Latitude^2),data=dataset)
 
 
 ```
 
-```{r, echo = FALSE}
-plot_fitted_resid = function(model, pointcol = "dodgerblue", linecol = "darkorange") {
-  plot(fitted(model), resid(model), 
-       col = pointcol, pch = 20, cex = 1.5,
-       xlab = "Fitted", ylab = "Residuals")
-  abline(h = 0, col = linecol, lwd = 2)
-}
+### Model Diagnostics
 
-plot_qq = function(model, pointcol = "dodgerblue", linecol = "darkorange") {
-  qqnorm(resid(model), col = pointcol, pch = 20, cex = 1.5)
-  qqline(resid(model), col = linecol, lwd = 2)
-}
+We have Six models to dignose: `firstModel`,`secondModel` and `thirdModel` and their transformed `log` versions.
+
+#### Model Assumptions
+
+1. Linearity and Constant Variance
+
+```{r,warning=FALSE,message=FALSE}
+par(mfrow=c(1,3))
+plot_fitted_resid(firstModel)
+plot_fitted_resid(secondModel)
+plot_fitted_resid(thirdModel)
+
+par(mfrow=c(1,3))
+plot_fitted_resid(firstLog)
+plot_fitted_resid(secondLog)
+plot_fitted_resid(thirdLog)
+
+bptest(firstModel)
+bptest(secondModel)
+bptest(thirdModel)
+
+bptest(firstLog)
+bptest(secondLog)
+bptest(thirdLog)
 ```
 
-**Solution**
+Based on these tests and plots, `secondLog` is the winner.
 
-- Linearity and Constant Variance
-```{r}
-plot_fitted_resid(model11)
+2. Normailty of errors
+
+```{r,warning=FALSE,message=FALSE}
+par(mfrow=c(3,2))
+hist(resid(firstModel),xlab = "Residuals",,main = "Histogram of Residuals, firstModel",col = "darkorange",border = "dodgerblue")
+plot_qq(firstModel)
+hist(resid(secondModel),xlab = "Residuals",,main = "Histogram of Residuals, secondModel",col = "darkorange",border = "dodgerblue")
+plot_qq(secondModel)
+hist(resid(thirdModel),xlab = "Residuals",,main = "Histogram of Residuals, thirdModel",col = "darkorange",border = "dodgerblue")
+plot_qq(thirdModel)
+
+par(mfrow=c(3,2))
+hist(resid(firstLog),xlab = "Residuals",,main = "Histogram of Residuals, Log irstModel",col = "darkorange",border = "dodgerblue")
+plot_qq(firstLog)
+hist(resid(secondLog),xlab = "Residuals",,main = "Histogram of Residuals, Log secondModel",col = "darkorange",border = "dodgerblue")
+plot_qq(secondLog)
+hist(resid(thirdLog),xlab = "Residuals",,main = "Histogram of Residuals, Log thirdModel",col = "darkorange",border = "dodgerblue")
+plot_qq(thirdLog)
+
+shapiro.test(resid(firstModel))
+shapiro.test(resid(secondModel))
+shapiro.test(resid(thirdModel))
+
+shapiro.test(resid(firstLog))
+shapiro.test(resid(secondLog))
+shapiro.test(resid(thirdLog))
+```
+`secondLog` model is winner based on plots and tests.
+
+#### Unsual Observations
+
+```{r,warning=FALSE,message=FALSE}
+# Leverage
+length(hatvalues(firstModel)[hatvalues(firstModel) > 2 * mean(hatvalues(firstModel))])
+length(hatvalues(secondModel)[hatvalues(secondModel) > 2 * mean(hatvalues(secondModel))])
+length(hatvalues(thirdModel)[hatvalues(thirdModel) > 2 * mean(hatvalues(thirdModel))])
+
+length(hatvalues(firstLog)[hatvalues(firstLog) > 2 * mean(hatvalues(firstLog))])
+length(hatvalues(secondLog)[hatvalues(secondLog) > 2 * mean(hatvalues(secondLog))])
+length(hatvalues(thirdLog)[hatvalues(thirdLog) > 2 * mean(hatvalues(thirdLog))])
+
+# Outliers
+length(rstandard(firstModel)[abs(rstandard(firstModel)) > 2])
+length(rstandard(secondModel)[abs(rstandard(secondModel)) > 2])
+length(rstandard(thirdModel)[abs(rstandard(thirdModel)) > 2])
+
+
+length(rstandard(firstLog)[abs(rstandard(firstLog)) > 2])
+length(rstandard(secondLog)[abs(rstandard(secondLog)) > 2])
+length(rstandard(thirdLog)[abs(rstandard(thirdLog)) > 2])
+
+
+# Influential
+length(cooks.distance(firstModel)[cooks.distance(firstModel) > 4 / length(cooks.distance(firstModel))])
+length(cooks.distance(secondModel)[cooks.distance(secondModel) > 4 / length(cooks.distance(secondModel))])
+length(cooks.distance(thirdModel)[cooks.distance(thirdModel) > 4 / length(cooks.distance(thirdModel))])
+
+length(cooks.distance(firstLog)[cooks.distance(firstLog) > 4 / length(cooks.distance(firstLog))])
+length(cooks.distance(secondLog)[cooks.distance(secondLog) > 4 / length(cooks.distance(secondLog))])
+length(cooks.distance(thirdLog)[cooks.distance(thirdLog) > 4 / length(cooks.distance(thirdLog))])
+
+
+```
+Prsence of Outliers, Influential points and Leveraging points is expected in real life datasets. 
+
+#### Evaluations
+```{r,warning=FALSE,message=FALSE}
+summary(firstModel)$adj.r.squared 
+summary(secondModel)$adj.r.squared 
+summary(thirdModel)$adj.r.squared 
+summary(firstLog)$adj.r.squared 
+summary(secondLog)$adj.r.squared 
+summary(thirdLog)$adj.r.squared 
+
+
+calc_loocv_rmse(firstModel)
+calc_loocv_rmse(secondModel)
+calc_loocv_rmse(thirdModel)
+calc_loocv_rmse(firstLog)
+calc_loocv_rmse(secondLog)
+calc_loocv_rmse(thirdLog)
+
+# VIF
+sum(vif(firstModel)>5)/length(coef(firstModel))
+sum(vif(secondModel)>5)/length(coef(secondModel))
+sum(vif(thirdModel)>5)/length(coef(thirdModel))
+sum(vif(firstLog)>5)/length(coef(firstLog))
+sum(vif(secondLog)>5)/length(coef(secondLog))
+sum(vif(thirdLog)>5)/length(coef(thirdLog))
+
+#AIC
+extractAIC(firstModel)
+extractAIC(secondModel)
+extractAIC(thirdModel)
+extractAIC(firstLog)
+extractAIC(secondLog)
+extractAIC(thirdLog)
+
+#BIC
+extractAIC(firstModel,k=log(nrow(dataset)))
+extractAIC(secondModel,k=log(nrow(dataset)))
+extractAIC(thirdModel,k=log(nrow(dataset)))
+extractAIC(firstLog,k=log(nrow(dataset)))
+extractAIC(secondLog,k=log(nrow(dataset)))
+extractAIC(thirdLog,k=log(nrow(dataset)))
 ```
 
-Linearity - Not Okay, Constant Variance - Not Okay
+Depending upon our criteria, we have different winners. For `adj.r.squared`, its `secondLog` and for `LOOCV_RMSE`, its tie between `firstModel` and `thirdModel`. And even after considering 2-Way interactions; we still have multicollinearity issues.
+<br/>
+#### Plots
+```{r,warning=FALSE,message=FALSE}
+par(mfrow = c(2, 2))
+plot(firstModel,main="firstModel")
+par(mfrow = c(2, 2))
+plot(secondModel,main="secondModel")
+par(mfrow = c(2, 2))
+plot(thirdModel,main="thirdModel")
 
-- Normality of errors
-
-```{r}
-par(mfrow=c(1,2))
-hist(resid(model11),
-     xlab   = "Residuals",
-     main   = "Histogram of Residuals",
-     col    = "darkorange",
-     border = "dodgerblue")
-plot_qq(model11)
+par(mfrow = c(2, 2))
+plot(firstLog,main="Log firstModel")
+par(mfrow = c(2, 2))
+plot(secondLog,main="Log secondModel")
+par(mfrow = c(2, 2))
+plot(thirdLog,main="Log thirdModel")
 ```
 
+## Results
 
-## Initial Modeling
+We chose the `secondLog` model as our final one, even of its issues with multicollinearity, its still the best in terms of `Adjusted R2` value.
+
+Lets see which predictors we finally have.
+
+```{r,warning=FALSE,message=FALSE}
+length(coef(secondLog))
+names(coef(secondLog))
+```
+
+We find that its a highly interactive model. And looking at the significance level of each contributor we find that there's still hige scope for improvement. Lets do that one last time.
+
+```{r,warning=FALSE,message=FALSE}
+finalModel = step(secondLog,trace=0)
+```
+
+And see how it performs.
+
+```{r,warning=FALSE,message=FALSE}
+par(mfrow = c(2, 2))
+plot(finalModel,main="Final Model")
+
+# Evaluation
+summary(finalModel)$adj.r.squared 
+summary(finalModel)$adj.r.squared > summary(secondLog)$adj.r.squared 
+
+calc_loocv_rmse(finalModel)
+calc_loocv_rmse(finalModel)<calc_loocv_rmse(secondLog)
+
+# VIF
+sum(vif(finalModel)>5)/length(coef(finalModel))
+sum(vif(finalModel)>5) < sum(vif(secondLog)>5)
+
+#AIC
+extractAIC(finalModel)
+extractAIC(secondLog)
 
 
+#BIC
+extractAIC(finalModel,k=log(nrow(dataset)))
+extractAIC(secondLog,k=log(nrow(dataset)))
+```
 
-## Diagnostics/Model Selection
-
-
-## Final Model Inference
-
+We found a better performing model :)
 
 ## Discussion
+
+With the `finalModel` we have some observations.
+
+*`Commute` which we considered to be the most important predictor of economic mobility, is not significant considering the interactions.*
+
+```{r,warning=FALSE,message=FALSE}
+coef(summary(finalModel))['Commute',]
+```
+
+*The significant predictors.*
+
+```{r}
+sum(summary(finalModel)$coefficients[ ,4] < 0.05)/length(coef(finalModel))
+summary(finalModel)$coefficients[summary(finalModel)$coefficients[ ,4] < 0.05,]
+```
+
+*Proportion of variation in `Mobility` explained by chosen predictors.*
+```{r,warning=FALSE,message=FALSE}
+summary(finalModel)$r.squared 
+```
+*Really a better model than `secondLog`*
+```{r,warning=FALSE,message=FALSE}
+analysis = anova(finalModel,secondLog,test="F")
+analysis$`Pr(>F)`[2]
+```
+
+YES!! We fail to reject the NULL hypothesis that the smaller model is as good as the bigger one.
+
+## Appendix
+
+**Model Summaries**
+<br/>
+*secondLog*
+
+```{r,warning=FALSE,message=FALSE}
+summary(secondLog)
+```
+
+*finalModel*
+
+```{r,warning=FALSE,message=FALSE}
+summary(finalModel)
+```
+
+**A model with `States`**
+
+
+```{r,warning=FALSE,message=FALSE}
+
+  # Dropping unique IDs and Names; and also States (too many levels.)
+  
+  drops <- c("Name", "ID")
+  dataset = mobilityData[ , !(names(mobilityData) %in% drops)]
+  
+  # Lets see interactions in a tree model
+  form <- as.formula(Mobility ~ .)
+  model <- rpart(form,data=dataset)
+  prp(model)
+  
+  # Correlations
+  data = na.omit(mobility)
+  #round(cor(data[sapply(data,is.numeric)], use="pairwise.complete.obs"),2)
+  corrplot(cor(data[sapply(data,is.numeric)]),method ="ellipse",
+         title =" Correlation Matrix Graph",tl.cex = .5,tl.pos ="lt",tl.col ="dodgerblue" )
+  
+  
+  # State model
+   modelState = lm(Mobility~Population+Black+Urban+State+Seg_racial+Seg_income+Seg_poverty+Seg_affluence+Commute+Income+Gini+Share01+Gini_99+Middle_class+Local_tax_rate+Local_gov_spending+Progressivity+EITC+School_spending+Student_teacher_ratio+Test_scores+HS_dropout+Colleges+Tuition+Graduation+Labor_force_participation+Manufacturing+Chinese_imports+Teenage_labor+Migration_in+Migration_out+Foreign_born+Social_capital+Religious+Violent_crime+Single_mothers+Divorced+Married+Longitude+Latitude+I(Population^2)+I(Black^2)+I(Seg_racial^2)+I(Seg_income^2)+I(Seg_poverty^2)+I(Seg_affluence^2)+I(Commute^2)+I(Income^2)+I(Gini^2)+I(Share01^2)+I(Gini_99^2)+I(Middle_class^2)+I(Local_tax_rate^2)+I(Local_gov_spending^2)+I(Progressivity^2)+I(EITC^2)+I(School_spending^2)+I(Student_teacher_ratio^2)+I(Test_scores^2)+I(HS_dropout^2)+I(Colleges^2)+I(Tuition^2)+I(Graduation^2)+I(Labor_force_participation^2)+I(Manufacturing^2)+I(Chinese_imports^2)+I(Teenage_labor^2)+I(Migration_in^2)+I(Migration_out^2)+I(Foreign_born^2)+I(Social_capital^2)+I(Religious^2)+I(Violent_crime^2)+I(Single_mothers^2)+I(Divorced^2)+I(Married^2)+I(Longitude^2)+I(Latitude^2),data=dataset)
+   
+# Significant ones
+ summary(modelState)$coefficients[summary(modelState)$coefficients[ ,4] < 0.05,]
+  
+```  
+Only Two states are significant; thus we were okay dropping them in the beginning.
+
 
