@@ -1,7 +1,6 @@
 ---
 title: 'STAT 420: Data Analysis Project'
-author: "Apurva V. Hari, Alok K. Shukla"
-date: "11/13/2016"
+author: "Alok K. Shukla, Apurva V. Hari"
 layout: default
 ---
 
