@@ -22,18 +22,17 @@ This Data Analysis Project is inspired by homework assignments from CMU class 36
 
 ### Tentative Title
 
-**Who’s Your Daddy? Is He Rich Like Me?**
-<br/>
-\newline
+**Who’s Your Daddy? Is He Rich Like Me?** 
+
  *A survey of economic mobility across generations in contemporary USA.*
 
-### Dataset 
+## Dataset 
 
-#### Background
+### Background
 
 The data come from a large study, based on tax records, which allowed researchers to link the income of adults to the income of their parents several decades previously. For privacy reasons, we don’t have that individual-level data, but we do have aggregate statistics about economic mobility for several hundred communities, containing most of the American population, and covariate information about those communities. 
 
-#### Description
+### Description
 
 The data file [`mobility.csv`](https://github.com/alokkshukla/STAT420/blob/master/Final%20Project/mobility.csv) has information on 741 communities. The variable we want to predict is economic mobility; the rest are predictor variables or covariates.
 
@@ -81,7 +80,7 @@ The data file [`mobility.csv`](https://github.com/alokkshukla/STAT420/blob/maste
 42. Name: the name of principal city or town.
 43. State: the state of the principal city or town of the community.
 
-### Motivation
+## Motivation
 
 * Hands on experince with real life datasets.
 * Practise with all techniques learnt in STAT420.
