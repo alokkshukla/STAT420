@@ -113,6 +113,6 @@ http://www.stat.cmu.edu/~cshalizi/uADA/15/
 
 ## Report 
 
-Please find the complete (report)[https://github.com/alokkshukla/STAT420/blob/master/Final%20Project/Project.pdf] and associated code at GitHub (repo.)[https://github.com/alokkshukla/STAT420/blob/master/Final%20Project]
+Please find the complete [report](https://github.com/alokkshukla/STAT420/blob/master/Final%20Project/Project.pdf) and associated code at GitHub [repo.](https://github.com/alokkshukla/STAT420/blob/master/Final%20Project)
 
 
