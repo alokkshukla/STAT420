@@ -91,7 +91,7 @@ The data file `mobility.csv` has information on 741 communities. The variable we
 
 Here is a snippet of data with only first 10 columns considered.
 
-
+<code>
 ```{r kable,message=FALSE,echo=FALSE}
 
 library(readr)
@@ -100,15 +100,14 @@ mobility <- read.csv("mobility.csv")
 knitr::kable(head(mobility)[,1:10])
 
 ```
+</code>
 
 ## Credits
 
-CMU, Statistics
+CMU, Statistics 
+<https://www.stat.cmu.edu/~cshalizi/mreg/15/> 
 
-https://www.stat.cmu.edu/~cshalizi/mreg/15/
-<br/>
-\newline
-http://www.stat.cmu.edu/~cshalizi/uADA/15/
+<http://www.stat.cmu.edu/~cshalizi/uADA/15/>
 
 
 ## Report 
