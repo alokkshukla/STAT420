@@ -35,7 +35,7 @@ The data come from a large study, based on tax records, which allowed researcher
 
 #### Description
 
-The data file `mobility.csv` has information on 741 communities. The variable we want to predict is economic mobility; the rest are predictor variables or covariates.
+The data file [`mobility.csv`](https://github.com/alokkshukla/STAT420/blob/master/Final%20Project/mobility.csv) has information on 741 communities. The variable we want to predict is economic mobility; the rest are predictor variables or covariates.
 
 1. Mobility: The probability that a child born in 1980–1982 into the lowest quin- tile (20%) of household income will be in the top quintile at age 30. Individuals are assigned to the community they grew up in, not the one they were in as adults.
 2. Population in 2000.
@@ -89,7 +89,7 @@ The data file `mobility.csv` has information on 741 communities. The variable we
 
 ### Data Snippet
 
-Here is a snippet of data with only first 10 columns considered.
+Following code would dsiplay snippet of data with only first 10 columns considered.
 
 
 
@@ -103,8 +103,8 @@ knitr::kable(head(mobility)[,1:10])
 ## Credits
 
 CMU, Statistics 
-<https://www.stat.cmu.edu/~cshalizi/mreg/15/> 
 
+<https://www.stat.cmu.edu/~cshalizi/mreg/15/> 
 <http://www.stat.cmu.edu/~cshalizi/uADA/15/>
 
 
